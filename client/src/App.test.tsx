@@ -46,6 +46,15 @@ it("shows accessible field errors and focuses the first invalid field", () => {
   expect(screen.getByLabelText("Full name")).toHaveFocus();
 });
 
+it("links the password hint to the input", () => {
+  render(<App />);
+  click("Create a new account");
+  const hintId = screen
+    .getByLabelText("Password")
+    .getAttribute("aria-describedby");
+  expect(document.getElementById(hintId ?? "")).toHaveTextContent("At least 8");
+});
+
 it("registers, logs out, logs in and stays logged in after a remount", async () => {
   const { unmount } = render(<App />);
   await registerAda();

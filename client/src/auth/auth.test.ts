@@ -7,7 +7,7 @@ import {
   logout,
   register,
 } from "./auth";
-import { verifyPassword } from "./password";
+import { PBKDF2_ITERATIONS, verifyPassword } from "./password";
 
 vi.mock("./password", async (importOriginal) => {
   const real = await importOriginal<typeof import("./password")>();
@@ -64,6 +64,43 @@ describe("register", () => {
     });
     await expect(register(ada)).rejects.toThrow("quota");
   });
+
+  it("can be retried after the session write fails", async () => {
+    const setItem = Storage.prototype.setItem;
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(function (
+      this: Storage,
+      key,
+      value,
+    ) {
+      if (key === SESSION_KEY) throw new Error("quota");
+      setItem.call(this, key, value);
+    });
+    await expect(register(ada)).rejects.toThrow("quota");
+    vi.mocked(Storage.prototype.setItem).mockRestore();
+    expect((await register(ada)).ok).toBe(true);
+  });
+
+  it("keeps existing accounts when another record is corrupt", async () => {
+    await register(ada);
+    logout();
+    const raw = users();
+    localStorage.setItem(
+      USERS_KEY,
+      JSON.stringify({ ...raw, "bad@b.co": { id: 1 } }),
+    );
+    const bob = {
+      fullName: "Bob",
+      email: "bob@example.com",
+      password: "secret123",
+    };
+    expect((await register(bob)).ok).toBe(true);
+    expect(Object.keys(users()).sort()).toEqual([
+      "ada@example.com",
+      "bob@example.com",
+    ]);
+    logout();
+    expect((await login(ada.email, ada.password)).ok).toBe(true);
+  });
 });
 
 describe("login", () => {
@@ -86,9 +123,32 @@ describe("login", () => {
     expect(currentUser()).toBeNull();
   });
 
+  it.each([
+    ["zero iterations", { iterations: 0 }],
+    ["negative iterations", { iterations: -1 }],
+    ["fractional iterations", { iterations: 1.5 }],
+    ["huge iterations", { iterations: 1e9 }],
+    ["non-base64 salt", { salt: "!!!" }],
+    ["non-base64 hash", { hash: "not base64" }],
+  ])("treats a stored user with %s as unknown", async (_, patch) => {
+    const all = users();
+    all["ada@example.com"].password = {
+      ...all["ada@example.com"].password,
+      ...patch,
+    };
+    localStorage.setItem(USERS_KEY, JSON.stringify(all));
+    expect(await login("ada@example.com", "secret123")).toEqual({
+      ok: false,
+      error: "INVALID_CREDENTIALS",
+    });
+  });
+
   it("still verifies against a dummy hash for an unknown email", async () => {
     await login("ghost@example.com", "nope");
     expect(verifyPassword).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(verifyPassword).mock.calls[0]?.[1].iterations).toBe(
+      PBKDF2_ITERATIONS,
+    );
   });
 });
 
@@ -97,6 +157,17 @@ describe("session", () => {
     await register(ada);
     logout();
     expect(localStorage.getItem(SESSION_KEY)).toBeNull();
+    expect(currentUser()).toBeNull();
+  });
+
+  it("survives removeItem failing while clearing an orphan session", () => {
+    localStorage.setItem(
+      SESSION_KEY,
+      JSON.stringify({ userId: "x", createdAt: "now" }),
+    );
+    vi.spyOn(Storage.prototype, "removeItem").mockImplementationOnce(() => {
+      throw new Error("denied");
+    });
     expect(currentUser()).toBeNull();
   });
 
