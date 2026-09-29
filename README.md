@@ -73,7 +73,7 @@ The first failing check wins, in this order. Strings are never coerced (`"10.00"
 | 6     | `full_name`       | `cc_rejected_bad_filled_name`          |
 | 7     | `amount`          | `invalid_amount`                       |
 
-A malformed JSON body, a body that is not a JSON object, or a missing JSON content type returns 400 `rejected` / `invalid_request_body`; a body over 10 KB returns 413 with the same status and detail.
+A malformed JSON body, a body that is not a JSON object, or a missing JSON content type returns 400 `rejected` / `invalid_request_body`. Other body errors keep their client status with the same status and detail: 413 for a body over 10 KB, 415 for an unsupported charset or content encoding. An empty JSON body is parsed as `{}` and fails validation with 422 `invalid_payer_id`.
 
 ### Scenarios (valid input)
 
