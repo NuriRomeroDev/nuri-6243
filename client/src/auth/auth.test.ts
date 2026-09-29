@@ -14,7 +14,9 @@ vi.mock("./password", async (importOriginal) => {
 const ada = { fullName: "Ada Lovelace", email: "Ada@Example.com", password: "secret123" };
 const users = () => JSON.parse(localStorage.getItem(USERS_KEY) ?? "{}");
 
-beforeEach(() => vi.mocked(verifyPassword).mockClear());
+beforeEach(() => {
+  vi.mocked(verifyPassword).mockClear();
+});
 
 describe("register", () => {
   it("stores a normalized user, hashes the password and logs in", async () => {
