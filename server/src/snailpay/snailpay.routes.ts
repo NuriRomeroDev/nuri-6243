@@ -18,11 +18,10 @@ const HTTP_STATUS: Record<OutcomeKind, number> = {
 
 const errorHandler: ErrorRequestHandler = (err: unknown, _req, res, next) => {
   if (res.headersSent) return next(err);
-  const type = (err as { type?: string } | null)?.type;
-  if (type === "entity.parse.failed" || type === "entity.too.large") {
-    return res
-      .status(type === "entity.too.large" ? 413 : 400)
-      .json(failureResponse("invalid_request_body"));
+  // body-parser tags client errors (bad JSON 400, too large 413, bad encoding 415) with a 4xx status.
+  const status = (err as { status?: unknown } | null)?.status;
+  if (typeof status === "number" && status >= 400 && status < 500) {
+    return res.status(status).json(failureResponse("invalid_request_body"));
   }
   console.error(err);
   res.status(500).json(failureResponse("internal_error"));

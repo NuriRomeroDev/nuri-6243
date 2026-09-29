@@ -83,7 +83,7 @@ const bad = (v: unknown, re: RegExp) => typeof v !== "string" || !re.test(v);
 const badAmount = (a: unknown) =>
   typeof a !== "number" ||
   !Number.isFinite(a) ||
-  a <= 0 ||
+  a < 0.01 ||
   a > 10000 ||
   Math.abs(a * 100 - Math.round(a * 100)) >= 1e-9;
 
