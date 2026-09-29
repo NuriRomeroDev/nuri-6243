@@ -7,10 +7,10 @@
     "server"
   ],
   "engines": {
-    "node": ">=22"
+    "node": "^22.22.2 || >=24.15.0"
   },
   "scripts": {
-    "dev": "concurrently -n server,client \"npm run dev -w server\" \"npm run dev -w client\"",
+    "dev": "concurrently -k -n server,client \"npm run dev -w server\" \"npm run dev -w client\"",
     "build": "npm run build --workspaces",
     "test": "npm run test --workspaces",
     "typecheck": "npm run typecheck --workspaces",
