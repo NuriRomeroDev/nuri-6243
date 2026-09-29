@@ -9,6 +9,11 @@ describe("app", () => {
     expect(res.body).toEqual({ status: "ok" });
   });
 
+  it("does not expose the x-powered-by header", async () => {
+    const res = await request(app).get("/api/health");
+    expect(res.headers["x-powered-by"]).toBeUndefined();
+  });
+
   it("returns 404 for unknown routes", async () => {
     const res = await request(app).get("/api/nope");
     expect(res.status).toBe(404);
