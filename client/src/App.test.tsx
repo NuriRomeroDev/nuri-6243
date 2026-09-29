@@ -40,7 +40,8 @@ it("shows accessible field errors and focuses the first invalid field", () => {
   for (const label of ["Full name", "Email", "Password"]) {
     const input = screen.getByLabelText(label);
     expect(input).toHaveAttribute("aria-invalid", "true");
-    const errorId = input.getAttribute("aria-describedby") ?? "";
+    const errorId =
+      input.getAttribute("aria-describedby")?.split(" ").pop() ?? "";
     expect(document.getElementById(errorId)).toHaveTextContent(/\S/);
   }
   expect(screen.getByLabelText("Full name")).toHaveFocus();

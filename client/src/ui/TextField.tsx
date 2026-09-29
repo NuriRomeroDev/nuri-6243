@@ -20,6 +20,9 @@ export function TextField({
   hint,
 }: Props) {
   const errorId = `${name}-error`;
+  const hintId = `${name}-hint`;
+  const describedBy =
+    [hint && hintId, error && errorId].filter(Boolean).join(" ") || undefined;
   return (
     <div className="field">
       <label htmlFor={name}>{label}</label>
@@ -31,10 +34,14 @@ export function TextField({
         value={value}
         required
         aria-invalid={error ? "true" : undefined}
-        aria-describedby={error ? errorId : undefined}
+        aria-describedby={describedBy}
         onChange={(e) => onChange(e.target.value)}
       />
-      {hint && !error && <p className="field-hint">{hint}</p>}
+      {hint && (
+        <p id={hintId} className="field-hint">
+          {hint}
+        </p>
+      )}
       {error && (
         <p id={errorId} className="field-error">
           {error}
