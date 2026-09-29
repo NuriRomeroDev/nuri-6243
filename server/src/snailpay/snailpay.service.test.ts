@@ -43,6 +43,7 @@ describe("validateCharge", () => {
     [{ amount: 1.234 }, "invalid_amount"],
     [{ amount: NaN }, "invalid_amount"],
     [{ amount: 10000.01 }, "invalid_amount"],
+    [{ amount: 1e-12 }, "invalid_amount"],
   ])("rejects %j with %s", (override, detail) => {
     expect(validateCharge({ ...valid, ...override })).toEqual({
       ok: false,
@@ -68,6 +69,11 @@ describe("processCharge", () => {
     [{}, "approved", "accredited"],
     [{ expiration_date: "01/30" }, "declined", "cc_rejected_bad_filled_date"],
     [{ cvv: "999" }, "declined", "cc_rejected_bad_filled_security_code"],
+    [
+      { expiration_date: "01/30", cvv: "999" },
+      "declined",
+      "cc_rejected_bad_filled_date",
+    ],
   ])("exact test card with %j", (override, kind, detail) => {
     expect(run(override)).toMatchObject({
       kind,

@@ -1,6 +1,6 @@
 import express from "express";
 import request from "supertest";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { snailpayRouter } from "./snailpay.routes.js";
 import { processCharge } from "./snailpay.service.js";
 
@@ -25,6 +25,8 @@ const post = (body: object | string, delay?: number) =>
   request(build(delay)).post("/api/snailpay/charge").type("json").send(body);
 
 describe("POST /api/snailpay/charge", () => {
+  afterEach(() => vi.restoreAllMocks());
+
   it.each([
     [{}, 201, "approved", "accredited"],
     [
@@ -77,6 +79,19 @@ describe("POST /api/snailpay/charge", () => {
       .send("hi");
     expect(res.status).toBe(400);
     expect(res.body.status_detail).toBe("invalid_request_body");
+  });
+
+  it("answers other client body errors with their 4xx status", async () => {
+    const res = await request(build())
+      .post("/api/snailpay/charge")
+      .set("Content-Type", "application/json")
+      .set("Content-Encoding", "foo")
+      .send(JSON.stringify(valid));
+    expect(res.status).toBe(415);
+    expect(res.body).toMatchObject({
+      status: "rejected",
+      status_detail: "invalid_request_body",
+    });
   });
 
   it("waits before answering a timeout", async () => {
