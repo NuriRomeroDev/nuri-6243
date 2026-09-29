@@ -18,4 +18,9 @@ describe("app", () => {
     const res = await request(app).get("/api/nope");
     expect(res.status).toBe(404);
   });
+
+  it("mounts the snailpay router", async () => {
+    const res = await request(app).post("/api/snailpay/charge").send({});
+    expect(res.status).toBe(422);
+  });
 });
