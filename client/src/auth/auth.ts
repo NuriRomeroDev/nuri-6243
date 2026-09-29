@@ -76,7 +76,10 @@ const DUMMY_HASH: PasswordHash = {
 };
 
 function startSession(user: UserRecord): AuthResult {
-  const session: Session = { userId: user.id, createdAt: new Date().toISOString() };
+  const session: Session = {
+    userId: user.id,
+    createdAt: new Date().toISOString(),
+  };
   writeJson(SESSION_KEY, session);
   return { ok: true, user: toUser(user) };
 }
@@ -104,7 +107,10 @@ export async function register(input: {
   return startSession(record);
 }
 
-export async function login(email: string, password: string): Promise<AuthResult> {
+export async function login(
+  email: string,
+  password: string,
+): Promise<AuthResult> {
   const record = readUsers()[normalizeEmail(email)];
   const ok = await verifyPassword(password, record?.password ?? DUMMY_HASH);
   if (!record || !ok) return { ok: false, error: "INVALID_CREDENTIALS" };
@@ -116,7 +122,9 @@ export const logout = () => localStorage.removeItem(SESSION_KEY);
 export function currentUser(): User | null {
   const session = readJson(SESSION_KEY, isSession);
   if (!session) return null;
-  const record = Object.values(readUsers()).find((u) => u.id === session.userId);
+  const record = Object.values(readUsers()).find(
+    (u) => u.id === session.userId,
+  );
   if (!record) {
     logout();
     return null;

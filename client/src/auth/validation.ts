@@ -11,7 +11,9 @@ export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const normalizeEmail = (email: string) => email.trim().toLowerCase();
 
-export function validateRegister(v: RegisterValues): FieldErrors<RegisterValues> {
+export function validateRegister(
+  v: RegisterValues,
+): FieldErrors<RegisterValues> {
   const errors: FieldErrors<RegisterValues> = {};
   const name = v.fullName.trim();
   const email = normalizeEmail(v.email);

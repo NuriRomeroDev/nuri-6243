@@ -10,7 +10,9 @@ import {
 import { LoginForm, RegisterForm } from "./AuthForms";
 
 type Props = {
-  onRegister: (input: Omit<RegisterValues, "confirmPassword">) => Promise<AuthResult>;
+  onRegister: (
+    input: Omit<RegisterValues, "confirmPassword">,
+  ) => Promise<AuthResult>;
   onLogin: (email: string, password: string) => Promise<AuthResult>;
 };
 
@@ -40,7 +42,9 @@ export function AuthScreen({ onRegister, onLogin }: Props) {
         setFieldErrors({ email: "An account with this email already exists" });
       else setFormError("Invalid email or password");
     } catch {
-      setFormError("Could not save your data. Check browser storage and try again.");
+      setFormError(
+        "Could not save your data. Check browser storage and try again.",
+      );
     } finally {
       setPending(false);
     }
@@ -62,7 +66,11 @@ export function AuthScreen({ onRegister, onLogin }: Props) {
       errors={fieldErrors}
       onSubmit={(v) =>
         void submit(validateRegister(v), () =>
-          onRegister({ fullName: v.fullName, email: v.email, password: v.password }),
+          onRegister({
+            fullName: v.fullName,
+            email: v.email,
+            password: v.password,
+          }),
         )
       }
     />

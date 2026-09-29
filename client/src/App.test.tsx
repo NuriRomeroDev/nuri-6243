@@ -80,7 +80,10 @@ it("shows a field error for a duplicate email", async () => {
   fill(account);
   click("Create account");
   await screen.findByText("An account with this email already exists");
-  expect(screen.getByLabelText("Email")).toHaveAttribute("aria-invalid", "true");
+  expect(screen.getByLabelText("Email")).toHaveAttribute(
+    "aria-invalid",
+    "true",
+  );
 });
 
 it("shows a generic error when storage fails", async () => {

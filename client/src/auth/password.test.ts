@@ -37,8 +37,8 @@ describe("password hashing", () => {
   it("verifies with the stored iteration count", async () => {
     const stored = await hashPassword("secret123", 10);
     expect(await verifyPassword("secret123", stored)).toBe(true);
-    expect(await verifyPassword("secret123", { ...stored, iterations: 11 })).toBe(
-      false,
-    );
+    expect(
+      await verifyPassword("secret123", { ...stored, iterations: 11 }),
+    ).toBe(false);
   });
 });

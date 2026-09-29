@@ -1,5 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { USERS_KEY, SESSION_KEY, currentUser, login, logout, register } from "./auth";
+import {
+  USERS_KEY,
+  SESSION_KEY,
+  currentUser,
+  login,
+  logout,
+  register,
+} from "./auth";
 import { verifyPassword } from "./password";
 
 vi.mock("./password", async (importOriginal) => {
@@ -11,7 +18,11 @@ vi.mock("./password", async (importOriginal) => {
   };
 });
 
-const ada = { fullName: "Ada Lovelace", email: "Ada@Example.com", password: "secret123" };
+const ada = {
+  fullName: "Ada Lovelace",
+  email: "Ada@Example.com",
+  password: "secret123",
+};
 const users = () => JSON.parse(localStorage.getItem(USERS_KEY) ?? "{}");
 
 beforeEach(() => {
@@ -23,7 +34,11 @@ describe("register", () => {
     const result = await register(ada);
     expect(result).toMatchObject({
       ok: true,
-      user: { fullName: "Ada Lovelace", email: "ada@example.com", balanceCents: 0 },
+      user: {
+        fullName: "Ada Lovelace",
+        email: "ada@example.com",
+        balanceCents: 0,
+      },
     });
     expect(users()["ada@example.com"].password.algorithm).toBe("PBKDF2-SHA256");
     expect(currentUser()?.email).toBe("ada@example.com");
@@ -34,7 +49,11 @@ describe("register", () => {
   it("rejects a duplicate email in any case and leaves the record unchanged", async () => {
     await register(ada);
     const before = localStorage.getItem(USERS_KEY);
-    const result = await register({ ...ada, email: " ADA@example.COM ", fullName: "Other" });
+    const result = await register({
+      ...ada,
+      email: " ADA@example.COM ",
+      fullName: "Other",
+    });
     expect(result).toEqual({ ok: false, error: "EMAIL_TAKEN" });
     expect(localStorage.getItem(USERS_KEY)).toBe(before);
   });
@@ -82,7 +101,10 @@ describe("session", () => {
   });
 
   it("clears an orphan session", () => {
-    localStorage.setItem(SESSION_KEY, JSON.stringify({ userId: "x", createdAt: "now" }));
+    localStorage.setItem(
+      SESSION_KEY,
+      JSON.stringify({ userId: "x", createdAt: "now" }),
+    );
     expect(currentUser()).toBeNull();
     expect(localStorage.getItem(SESSION_KEY)).toBeNull();
   });
@@ -93,7 +115,10 @@ describe("session", () => {
     ["array", "[]"],
   ])("treats %s users data as empty", async (_, raw) => {
     localStorage.setItem(USERS_KEY, raw);
-    expect(await login("a@b.co", "x")).toEqual({ ok: false, error: "INVALID_CREDENTIALS" });
+    expect(await login("a@b.co", "x")).toEqual({
+      ok: false,
+      error: "INVALID_CREDENTIALS",
+    });
     expect((await register(ada)).ok).toBe(true);
   });
 

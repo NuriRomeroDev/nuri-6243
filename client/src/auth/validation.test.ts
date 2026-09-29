@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  normalizeEmail,
-  validateLogin,
-  validateRegister,
-} from "./validation";
+import { normalizeEmail, validateLogin, validateRegister } from "./validation";
 
 const valid = {
   fullName: "Ada Lovelace",
@@ -27,7 +23,10 @@ describe("validateRegister", () => {
     ["password", { password: "abc123", confirmPassword: "abc123" }],
     ["password", { password: "abcdefgh", confirmPassword: "abcdefgh" }],
     ["password", { password: "12345678", confirmPassword: "12345678" }],
-    ["password", { password: "a1".repeat(65), confirmPassword: "a1".repeat(65) }],
+    [
+      "password",
+      { password: "a1".repeat(65), confirmPassword: "a1".repeat(65) },
+    ],
     ["confirmPassword", { confirmPassword: "different1" }],
   ])("rejects invalid %s (%j)", (field, override) => {
     const errors = validateRegister({ ...valid, ...override });

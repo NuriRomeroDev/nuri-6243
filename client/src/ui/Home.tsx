@@ -1,6 +1,9 @@
 import type { User } from "../auth/auth";
 
-const usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+const usd = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+});
 
 export function Home({ user, onLogout }: { user: User; onLogout: () => void }) {
   return (

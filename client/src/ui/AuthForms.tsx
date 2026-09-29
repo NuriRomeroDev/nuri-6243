@@ -70,8 +70,15 @@ function FormShell({
   );
 }
 
-export function LoginForm({ errors, onSubmit, ...rest }: FormProps<LoginValues>) {
-  const [values, setValues] = useState<LoginValues>({ email: "", password: "" });
+export function LoginForm({
+  errors,
+  onSubmit,
+  ...rest
+}: FormProps<LoginValues>) {
+  const [values, setValues] = useState<LoginValues>({
+    email: "",
+    password: "",
+  });
   const set = (key: keyof LoginValues) => (value: string) =>
     setValues((v) => ({ ...v, [key]: value }));
 
@@ -84,16 +91,33 @@ export function LoginForm({ errors, onSubmit, ...rest }: FormProps<LoginValues>)
       switchLabel="Create a new account"
       onSubmit={() => onSubmit(values)}
     >
-      <TextField label="Email" name="email" type="email" autoComplete="email"
-        value={values.email} onChange={set("email")} error={errors.email} />
-      <TextField label="Password" name="password" type="password"
-        autoComplete="current-password" value={values.password}
-        onChange={set("password")} error={errors.password} />
+      <TextField
+        label="Email"
+        name="email"
+        type="email"
+        autoComplete="email"
+        value={values.email}
+        onChange={set("email")}
+        error={errors.email}
+      />
+      <TextField
+        label="Password"
+        name="password"
+        type="password"
+        autoComplete="current-password"
+        value={values.password}
+        onChange={set("password")}
+        error={errors.password}
+      />
     </FormShell>
   );
 }
 
-export function RegisterForm({ errors, onSubmit, ...rest }: FormProps<RegisterValues>) {
+export function RegisterForm({
+  errors,
+  onSubmit,
+  ...rest
+}: FormProps<RegisterValues>) {
   const [values, setValues] = useState<RegisterValues>({
     fullName: "",
     email: "",
@@ -112,18 +136,43 @@ export function RegisterForm({ errors, onSubmit, ...rest }: FormProps<RegisterVa
       switchLabel="I already have an account"
       onSubmit={() => onSubmit(values)}
     >
-      <TextField label="Full name" name="fullName" type="text"
-        autoComplete="name" value={values.fullName}
-        onChange={set("fullName")} error={errors.fullName} />
-      <TextField label="Email" name="email" type="email" autoComplete="email"
-        value={values.email} onChange={set("email")} error={errors.email} />
-      <TextField label="Password" name="password" type="password"
-        autoComplete="new-password" value={values.password}
-        onChange={set("password")} error={errors.password}
-        hint="At least 8 characters, with a letter and a number" />
-      <TextField label="Confirm password" name="confirmPassword" type="password"
-        autoComplete="new-password" value={values.confirmPassword}
-        onChange={set("confirmPassword")} error={errors.confirmPassword} />
+      <TextField
+        label="Full name"
+        name="fullName"
+        type="text"
+        autoComplete="name"
+        value={values.fullName}
+        onChange={set("fullName")}
+        error={errors.fullName}
+      />
+      <TextField
+        label="Email"
+        name="email"
+        type="email"
+        autoComplete="email"
+        value={values.email}
+        onChange={set("email")}
+        error={errors.email}
+      />
+      <TextField
+        label="Password"
+        name="password"
+        type="password"
+        autoComplete="new-password"
+        value={values.password}
+        onChange={set("password")}
+        error={errors.password}
+        hint="At least 8 characters, with a letter and a number"
+      />
+      <TextField
+        label="Confirm password"
+        name="confirmPassword"
+        type="password"
+        autoComplete="new-password"
+        value={values.confirmPassword}
+        onChange={set("confirmPassword")}
+        error={errors.confirmPassword}
+      />
     </FormShell>
   );
 }
