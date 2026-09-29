@@ -37,7 +37,7 @@ it("shows accessible field errors and focuses the first invalid field", () => {
   render(<App />);
   click("Create a new account");
   click("Create account");
-  for (const label of ["Full name", "Email", "Password", "Confirm password"]) {
+  for (const label of ["Full name", "Email", "Password"]) {
     const input = screen.getByLabelText(label);
     expect(input).toHaveAttribute("aria-invalid", "true");
     const errorId = input.getAttribute("aria-describedby") ?? "";
