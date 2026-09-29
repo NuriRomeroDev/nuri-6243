@@ -28,12 +28,17 @@ const isObject = (v: unknown): v is Record<string, unknown> =>
   typeof v === "object" && v !== null && !Array.isArray(v);
 const isString = (v: unknown): v is string => typeof v === "string";
 
+const isBase64 = (v: unknown): v is string =>
+  isString(v) && /^[A-Za-z0-9+/]+={0,2}$/.test(v);
+
 const isPasswordHash = (v: unknown): v is PasswordHash =>
   isObject(v) &&
   v.algorithm === "PBKDF2-SHA256" &&
-  typeof v.iterations === "number" &&
-  isString(v.salt) &&
-  isString(v.hash);
+  Number.isInteger(v.iterations) &&
+  (v.iterations as number) >= 1 &&
+  (v.iterations as number) <= 10_000_000 &&
+  isBase64(v.salt) &&
+  isBase64(v.hash);
 
 const isUserRecord = (v: unknown): v is UserRecord =>
   isObject(v) &&
@@ -43,9 +48,6 @@ const isUserRecord = (v: unknown): v is UserRecord =>
   isPasswordHash(v.password) &&
   typeof v.balanceCents === "number" &&
   isString(v.createdAt);
-
-const isUsers = (v: unknown): v is Record<string, UserRecord> =>
-  isObject(v) && Object.values(v).every(isUserRecord);
 
 const isSession = (v: unknown): v is Session =>
   isObject(v) && isString(v.userId) && isString(v.createdAt);
@@ -62,8 +64,13 @@ function readJson<T>(key: string, guard: (v: unknown) => v is T): T | null {
 const writeJson = (key: string, value: unknown) =>
   localStorage.setItem(key, JSON.stringify(value));
 
-// ponytail: corrupted users data is read as {} and overwritten on next register
-const readUsers = () => readJson(USERS_KEY, isUsers) ?? {};
+// Invalid records are dropped individually; a non-object value reads as {}.
+const readUsers = () =>
+  Object.fromEntries(
+    Object.entries(readJson(USERS_KEY, isObject) ?? {}).filter(
+      (entry): entry is [string, UserRecord] => isUserRecord(entry[1]),
+    ),
+  );
 
 const toUser = ({
   id,
@@ -109,8 +116,11 @@ export async function register(input: {
     balanceCents: 0,
     createdAt: new Date().toISOString(),
   };
+  // Session first: if the users write then fails, the orphan session is
+  // ignored by currentUser and a retry is not blocked by EMAIL_TAKEN.
+  const result = startSession(record);
   writeJson(USERS_KEY, { ...users, [email]: record });
-  return startSession(record);
+  return result;
 }
 
 export async function login(
@@ -132,7 +142,11 @@ export function currentUser(): User | null {
     (u) => u.id === session.userId,
   );
   if (!record) {
-    logout();
+    try {
+      logout();
+    } catch {
+      // Runs during render; failing to clear an orphan session is harmless.
+    }
     return null;
   }
   return toUser(record);
