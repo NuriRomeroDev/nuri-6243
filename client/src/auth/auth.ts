@@ -65,7 +65,13 @@ const writeJson = (key: string, value: unknown) =>
 // ponytail: corrupted users data is read as {} and overwritten on next register
 const readUsers = () => readJson(USERS_KEY, isUsers) ?? {};
 
-const toUser = ({ password: _password, ...user }: UserRecord): User => user;
+const toUser = ({
+  id,
+  fullName,
+  email,
+  balanceCents,
+  createdAt,
+}: UserRecord): User => ({ id, fullName, email, balanceCents, createdAt });
 
 // Verified against when the email is unknown so both failures cost the same.
 const DUMMY_HASH: PasswordHash = {
