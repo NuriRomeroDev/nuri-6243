@@ -25,6 +25,12 @@ interface EnvelopeBase {
   card_number: string | null;
   cvv: string | null;
 }
+// Each status only allows its own details, so impossible combinations don't compile.
+type Result =
+  | { status: "approved"; status_detail: "accredited" }
+  | { status: "rejected"; status_detail: RejectedDetail }
+  | { status: "error"; status_detail: ErrorDetail };
+
 export type ChargeResponse = EnvelopeBase &
   (
     | {
@@ -103,6 +109,7 @@ export function validateCharge(body: unknown): Validation {
     [badAmount(b.amount), "invalid_amount"],
   ];
   const failed = checks.find(([fails]) => fails);
+  // The checks above prove every ChargeRequest field has the right type and shape.
   return failed
     ? { ok: false, detail: failed[1] }
     : { ok: true, value: b as unknown as ChargeRequest };
@@ -110,78 +117,76 @@ export function validateCharge(body: unknown): Validation {
 
 function envelope(
   body: unknown,
-  status: ChargeResponse["status"],
-  status_detail: ChargeResponse["status_detail"],
+  result: Result,
   deps: ChargeDeps,
 ): ChargeResponse {
   const b = isObject(body) ? body : {};
   const now = deps.now();
   const a = b.amount;
-  return {
+  const base: EnvelopeBase = {
     id: deps.uuid(),
-    status,
-    status_detail,
     transaction_amount:
       typeof a === "number" && Number.isFinite(a)
         ? Math.round(a * 100) / 100
         : null,
     date_created: now.toISOString(),
-    authorization_code: status === "approved" ? deps.digits(6) : null,
     reference: `SNP-${now.toISOString().slice(0, 10).replaceAll("-", "")}-${deps.digits(6)}`,
     payer_id: str(b.payer_id),
     payer_email: str(b.payer_email),
     // ponytail: echoing card number and CVV is required by the spec; never do this with real card data (PCI)
     card_number: str(b.card_number),
     cvv: str(b.cvv),
-  } as ChargeResponse;
+  };
+  return result.status === "approved"
+    ? { ...base, ...result, authorization_code: deps.digits(6) }
+    : { ...base, ...result, authorization_code: null };
 }
 
-const CARD_SCENARIOS: Record<
-  string,
-  [OutcomeKind, ChargeResponse["status"], ChargeResponse["status_detail"]]
-> = {
-  "4000000000000002": ["declined", "rejected", "cc_rejected_card_declined"],
-  "4000000000009995": [
-    "declined",
-    "rejected",
-    "cc_rejected_insufficient_amount",
+const rejected = (status_detail: RejectedDetail): Result => ({
+  status: "rejected",
+  status_detail,
+});
+
+const CARD_SCENARIOS: Partial<Record<string, [OutcomeKind, Result]>> = {
+  "4000000000000002": ["declined", rejected("cc_rejected_card_declined")],
+  "4000000000009995": ["declined", rejected("cc_rejected_insufficient_amount")],
+  "5000000000000009": [
+    "unavailable",
+    { status: "error", status_detail: "service_unavailable" },
   ],
-  "5000000000000009": ["unavailable", "error", "service_unavailable"],
-  "5000000000000017": ["timeout", "error", "processing_timeout"],
+  "5000000000000017": [
+    "timeout",
+    { status: "error", status_detail: "processing_timeout" },
+  ],
 };
 
 export function processCharge(
   body: unknown,
   deps: ChargeDeps = defaultDeps,
 ): ChargeOutcome {
-  const out = (
-    kind: OutcomeKind,
-    status: ChargeResponse["status"],
-    detail: ChargeResponse["status_detail"],
-  ) => ({ kind, response: envelope(body, status, detail, deps) });
+  const out = (kind: OutcomeKind, result: Result): ChargeOutcome => ({
+    kind,
+    response: envelope(body, result, deps),
+  });
 
   if (!isObject(body))
-    return out("malformed", "rejected", "invalid_request_body");
+    return out("malformed", rejected("invalid_request_body"));
   const v = validateCharge(body);
-  if (!v.ok) return out("invalid", "rejected", v.detail);
+  if (!v.ok) return out("invalid", rejected(v.detail));
 
   const { card_number, expiration_date, cvv } = v.value;
   if (card_number === "1234123412341234") {
     // ponytail: expiry is not checked against the clock so the documented test card keeps working
     if (expiration_date !== "12/26")
-      return out("declined", "rejected", "cc_rejected_bad_filled_date");
+      return out("declined", rejected("cc_rejected_bad_filled_date"));
     if (cvv !== "543")
-      return out(
-        "declined",
-        "rejected",
-        "cc_rejected_bad_filled_security_code",
-      );
-    return out("approved", "approved", "accredited");
+      return out("declined", rejected("cc_rejected_bad_filled_security_code"));
+    return out("approved", { status: "approved", status_detail: "accredited" });
   }
-  const s = CARD_SCENARIOS[card_number];
-  return s
-    ? out(...s)
-    : out("declined", "rejected", "cc_rejected_card_not_recognized");
+  const scenario = CARD_SCENARIOS[card_number];
+  return scenario
+    ? out(...scenario)
+    : out("declined", rejected("cc_rejected_card_not_recognized"));
 }
 
 export function failureResponse(
@@ -190,8 +195,9 @@ export function failureResponse(
 ): ChargeResponse {
   return envelope(
     undefined,
-    detail === "internal_error" ? "error" : "rejected",
-    detail,
+    detail === "internal_error"
+      ? { status: "error", status_detail: detail }
+      : rejected(detail),
     deps,
   );
 }
