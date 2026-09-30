@@ -4,6 +4,7 @@ import type {
   LoginValues,
   RegisterValues,
 } from "../auth/validation";
+import { ArrowRightIcon, LockIcon, MailIcon, UserIcon } from "./icons";
 import { TextField } from "./TextField";
 
 type FormProps<V> = {
@@ -16,7 +17,9 @@ type FormProps<V> = {
 
 type ShellProps = {
   title: string;
+  subtitle: string;
   submitLabel: string;
+  switchPrompt: string;
   switchLabel: string;
   errors: object;
   formError?: string | undefined;
@@ -28,7 +31,9 @@ type ShellProps = {
 
 function FormShell({
   title,
+  subtitle,
   submitLabel,
+  switchPrompt,
   switchLabel,
   errors,
   formError,
@@ -44,29 +49,37 @@ function FormShell({
   }, [errors]);
 
   return (
-    <form
-      ref={ref}
-      noValidate
-      aria-busy={pending}
-      onSubmit={(e) => {
-        e.preventDefault();
-        onSubmit();
-      }}
-    >
+    <>
       <h2>{title}</h2>
-      {children}
-      {formError && (
-        <p role="alert" className="form-error">
-          {formError}
-        </p>
-      )}
-      <button type="submit" disabled={pending}>
-        {submitLabel}
-      </button>
-      <button type="button" className="link" onClick={onSwitch}>
-        {switchLabel}
-      </button>
-    </form>
+      <p className="subtitle">{subtitle}</p>
+      <form
+        ref={ref}
+        noValidate
+        aria-busy={pending}
+        onSubmit={(e) => {
+          e.preventDefault();
+          onSubmit();
+        }}
+      >
+        {children}
+        {formError && (
+          <p role="alert" className="form-error">
+            {formError}
+          </p>
+        )}
+        <button type="submit" className="primary" disabled={pending}>
+          <span>{pending ? "Procesando…" : submitLabel}</span>
+          <ArrowRightIcon />
+        </button>
+      </form>
+      <hr className="divider" />
+      <p className="switch">
+        {switchPrompt}{" "}
+        <button type="button" className="link" onClick={onSwitch}>
+          {switchLabel}
+        </button>
+      </p>
+    </>
   );
 }
 
@@ -86,13 +99,17 @@ export function LoginForm({
     <FormShell
       {...rest}
       errors={errors}
-      title="Log in"
-      submitLabel="Log in"
-      switchLabel="Create a new account"
+      title="Inicia sesión"
+      subtitle="Qué bueno verte de nuevo. Tu caracol te espera en la pista."
+      submitLabel="Iniciar sesión"
+      switchPrompt="¿No tienes cuenta?"
+      switchLabel="Crear cuenta"
       onSubmit={() => onSubmit(values)}
     >
       <TextField
-        label="Email"
+        label="Correo electrónico"
+        placeholder="tu@email.com"
+        icon={<MailIcon />}
         name="email"
         type="email"
         autoComplete="email"
@@ -101,7 +118,8 @@ export function LoginForm({
         error={errors.email}
       />
       <TextField
-        label="Password"
+        label="Contraseña"
+        icon={<LockIcon />}
         name="password"
         type="password"
         autoComplete="current-password"
@@ -131,13 +149,17 @@ export function RegisterForm({
     <FormShell
       {...rest}
       errors={errors}
-      title="Create account"
-      submitLabel="Create account"
-      switchLabel="I already have an account"
+      title="Crea tu cuenta"
+      subtitle="Únete al club y comienza tu aventura en las carreras de caracoles."
+      submitLabel="Crear cuenta"
+      switchPrompt="¿Ya tienes cuenta?"
+      switchLabel="Iniciar sesión"
       onSubmit={() => onSubmit(values)}
     >
       <TextField
-        label="Full name"
+        label="Nombre completo"
+        placeholder="Tu nombre completo"
+        icon={<UserIcon />}
         name="fullName"
         type="text"
         autoComplete="name"
@@ -146,7 +168,9 @@ export function RegisterForm({
         error={errors.fullName}
       />
       <TextField
-        label="Email"
+        label="Correo electrónico"
+        placeholder="tu@email.com"
+        icon={<MailIcon />}
         name="email"
         type="email"
         autoComplete="email"
@@ -155,17 +179,19 @@ export function RegisterForm({
         error={errors.email}
       />
       <TextField
-        label="Password"
+        label="Contraseña"
+        icon={<LockIcon />}
         name="password"
         type="password"
         autoComplete="new-password"
         value={values.password}
         onChange={set("password")}
         error={errors.password}
-        hint="At least 8 characters, with a letter and a number"
+        hint="Mínimo 8 caracteres, con al menos una letra y un número"
       />
       <TextField
-        label="Confirm password"
+        label="Confirmar contraseña"
+        icon={<LockIcon />}
         name="confirmPassword"
         type="password"
         autoComplete="new-password"

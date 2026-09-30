@@ -1,3 +1,4 @@
+import { Brand } from "./icons";
 import type { User } from "../auth/auth";
 
 const usd = new Intl.NumberFormat("en-US", {
@@ -8,11 +9,12 @@ const usd = new Intl.NumberFormat("en-US", {
 export function Home({ user, onLogout }: { user: User; onLogout: () => void }) {
   return (
     <section className="card">
-      <h2>Welcome, {user.fullName}</h2>
-      <p className="balance-label">Balance</p>
+      <Brand />
+      <h2>Hola, {user.fullName}</h2>
+      <p className="balance-label">Saldo</p>
       <p className="balance">{usd.format(user.balanceCents / 100)}</p>
-      <button type="button" onClick={onLogout}>
-        Log out
+      <button type="button" className="primary" onClick={onLogout}>
+        Cerrar sesión
       </button>
     </section>
   );
