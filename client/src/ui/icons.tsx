@@ -74,12 +74,11 @@ export const SnailMark = () => (
 );
 
 export const Brand = () => (
-  <h1 className="brand" aria-label="Snail Club">
+  <h1 className="brand">
     <SnailMark />
-    <span aria-hidden="true">
-      Snail
-      <br />
-      Club
+    {/* Stacked visually; the space keeps the accessible name "Snail Club". */}
+    <span className="wordmark">
+      <span>Snail</span> <span>Club</span>
     </span>
   </h1>
 );

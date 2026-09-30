@@ -2,11 +2,12 @@
   color-scheme: light;
   --green-900: #0f3324;
   --green-800: #163f2d;
-  --green-500: #6e8f63;
-  --lime: #d8e86b;
+  --focus-ring: rgb(110 143 99 / 0.45);
   --cream-50: #fbf8f1;
   --cream-100: #f5f1e8;
   --line: #ddd8cc;
+  /* Field borders need 3:1 against white (WCAG 1.4.11); --line is only for dividers. */
+  --field-line: #8f9690;
   --text: #1b1f1c;
   --muted: #5e645f;
   --error-line: #ef685e;
@@ -35,6 +36,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 100vh;
   min-height: 100dvh;
   padding: 16px;
 }
@@ -69,6 +71,10 @@ h2 {
 .brand svg {
   width: 56px;
   height: 56px;
+}
+
+.wordmark span {
+  display: block;
 }
 
 .auth-card,
@@ -143,17 +149,17 @@ input {
   font: inherit;
   color: var(--text);
   background: #fff;
-  border: 1px solid var(--line);
+  border: 1px solid var(--field-line);
   border-radius: var(--radius-field);
 }
 
 input::placeholder {
-  color: #8a8f8a;
+  color: var(--muted);
 }
 
 input:focus-visible {
   border-color: var(--green-800);
-  outline: 3px solid rgb(110 143 99 / 0.45);
+  outline: 3px solid var(--focus-ring);
   outline-offset: 0;
 }
 
@@ -274,6 +280,7 @@ button.link:hover {
   /* Tall card so the portrait illustration is not cropped to a strip on the short login form. */
   .auth-card {
     grid-template-columns: 42fr 58fr;
+    min-height: min(820px, calc(100vh - 64px));
     min-height: min(820px, calc(100dvh - 64px));
   }
 
