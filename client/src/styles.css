@@ -33,7 +33,9 @@ body {
 
 .app {
   display: flex;
+  align-items: center;
   justify-content: center;
+  min-height: 100dvh;
   padding: 16px;
 }
 
@@ -56,10 +58,17 @@ h2 {
   align-items: center;
   gap: 12px;
   margin: 0 0 32px;
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 800;
-  line-height: 1.1;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--green-800);
+}
+
+.brand svg {
+  width: 56px;
+  height: 56px;
 }
 
 .auth-card,
@@ -238,8 +247,12 @@ button.link {
   color: var(--green-800);
   background: none;
   border: 0;
-  text-decoration: underline;
+  text-decoration: none;
   cursor: pointer;
+}
+
+button.link:hover {
+  text-decoration: underline;
 }
 
 @media (min-width: 560px) {
@@ -258,12 +271,25 @@ button.link {
     font-size: 2.5rem;
   }
 
+  /* Tall card so the portrait illustration is not cropped to a strip on the short login form. */
   .auth-card {
-    grid-template-columns: 45fr 55fr;
+    grid-template-columns: 42fr 58fr;
+    min-height: min(820px, calc(100dvh - 64px));
+  }
+
+  .auth-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 56px 64px;
+  }
+
+  .brand svg {
+    width: 72px;
+    height: 72px;
   }
 
   .auth-hero {
     display: block;
-    min-height: 640px;
   }
 }
