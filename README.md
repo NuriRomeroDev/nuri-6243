@@ -107,3 +107,23 @@ Every response, including errors, has all of these fields.
 | `payer_email`        | echoed if a string, otherwise `null`              |
 | `card_number`        | echoed if a string, otherwise `null`              |
 | `cvv`                | echoed if a string, otherwise `null`              |
+
+## Security notes
+
+Authentication is a client-side simulation: accounts and sessions live in `localStorage`, so anyone with devtools can read or edit them. It demonstrates the flow, not a security boundary.
+
+What the simulation does:
+
+- Passwords are hashed with PBKDF2-HMAC-SHA256 at 600,000 iterations (the OWASP recommendation) using the Web Crypto API. The plaintext is never stored.
+- Each user gets a random 16-byte salt.
+- Login returns one generic error for unknown email and wrong password, and verifies against a dummy hash for unknown emails, to limit user enumeration.
+- Hashes are compared with plain `===`; a constant-time compare adds nothing when the attacker already controls the browser.
+
+What a real backend would do:
+
+- Hash server-side with argon2id or bcrypt.
+- Rate-limit login attempts.
+- Keep the session in an HttpOnly, Secure, SameSite cookie.
+- Expire sessions server-side.
+
+No dependencies were added for authentication.

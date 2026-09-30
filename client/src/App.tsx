@@ -1,3 +1,17 @@
+import { useAuth } from "./auth/useAuth";
+import { AuthScreen } from "./ui/AuthScreen";
+import { Home } from "./ui/Home";
+
 export function App() {
-  return <h1>Snail Racing</h1>;
+  const { user, register, login, logout } = useAuth();
+  return (
+    <main className="app">
+      <h1>Snail Racing</h1>
+      {user ? (
+        <Home user={user} onLogout={logout} />
+      ) : (
+        <AuthScreen onRegister={register} onLogin={login} />
+      )}
+    </main>
+  );
 }
