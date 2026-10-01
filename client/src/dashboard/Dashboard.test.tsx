@@ -15,10 +15,10 @@ const user: User = {
 const setup = (props: Partial<Parameters<typeof Dashboard>[0]> = {}) =>
   render(<Dashboard user={user} onLogout={() => {}} {...props} />);
 
-it("greets the user by first name and shows the balance", () => {
+// The brief asks for the registered name; a first word can be an abbreviation like "Mª.".
+it("greets the user by full name and shows the balance", () => {
   setup();
-  expect(screen.getByText(/Hola, Ada/)).toBeVisible();
-  expect(screen.queryByText(/Lovelace/)).toBeNull();
+  expect(screen.getByText(/Hola, Ada Lovelace/)).toBeVisible();
   expect(screen.getByText("$0.00")).toBeVisible();
   expect(screen.getByText("Listo para nuevas apuestas")).toBeVisible();
 });
