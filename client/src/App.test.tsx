@@ -156,7 +156,7 @@ const topUp = (httpStatus: number, body: unknown) => {
     "Nombre del titular": "Ada Lovelace",
     "Monto a cargar": "25.50",
   });
-  click("Pagar con SnailPay →");
+  click("Pagar con SnailPay");
 };
 
 it("top-up: an approved charge updates the balance and stores the transaction", async () => {
@@ -180,6 +180,6 @@ it("top-up: a rejected charge leaves the balance unchanged", async () => {
   await registerAda();
   topUp(402, chargeResponse("rejected", "cc_rejected_card_declined"));
   await screen.findByRole("heading", { name: "Tarjeta rechazada" });
-  click("Cerrar");
+  click("Cerrar ventana");
   expect(screen.getByText("$0.00")).toBeVisible();
 });

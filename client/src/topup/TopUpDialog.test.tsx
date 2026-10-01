@@ -122,7 +122,7 @@ it("does not allow cancelling while processing", async () => {
   const cancel = new Event("cancel", { cancelable: true });
   dialog.dispatchEvent(cancel);
   expect(cancel.defaultPrevented).toBe(true);
-  expect(screen.queryByRole("button", { name: "Cerrar" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Cerrar ventana" })).toBeNull();
   expect(screen.getByRole("status")).toHaveTextContent("Procesando");
 });
 
