@@ -94,12 +94,16 @@ describe("charge", () => {
   });
 
   it("treats malformed JSON as unavailable", async () => {
-    const fetchImpl = vi.fn(async () => new Response("<html>", { status: 201 }));
+    const fetchImpl = vi.fn(
+      async () => new Response("<html>", { status: 201 }),
+    );
     expect((await charge(req, { fetchImpl })).kind).toBe("unavailable");
   });
 
   it("treats a body that fails the guard as unavailable", async () => {
-    const r = await charge(req, { fetchImpl: reply(201, { status: "approved" }) });
+    const r = await charge(req, {
+      fetchImpl: reply(201, { status: "approved" }),
+    });
     expect(r.kind).toBe("unavailable");
   });
 
