@@ -11,8 +11,10 @@ export const cardNumber = (v: string) =>
   ).join(" ");
 
 export function expiry(v: string) {
-  let d = onlyDigits(v);
+  // Keep the month within 01-12 while typing: "5" → "05", "13" → "01/3", "00" → "0".
+  let d = onlyDigits(v).replace(/^00+/, "0");
   if (/^[2-9]/.test(d)) d = `0${d}`;
+  else if (/^1[3-9]/.test(d)) d = `01${d.slice(1)}`;
   d = d.slice(0, 4);
   return d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d;
 }
@@ -31,8 +33,10 @@ export function amount(v: string) {
 
 export const personName = (v: string) =>
   v
+    // NFC first: macOS can paste accents as separate combining marks ("e" + "´").
+    .normalize("NFC")
     .replace(/\s/g, " ")
-    .replace(/[^\p{L} '-]/gu, "")
+    .replace(/[^\p{L}\p{M} '.-]/gu, "")
     .replace(/ {2,}/g, " ")
     .replace(/^ /, "")
     .slice(0, 100);
