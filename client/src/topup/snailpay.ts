@@ -77,8 +77,15 @@ export async function charge(
     if (res.status === 504) return { kind: "timeout" };
     const body: unknown = await res.json().catch(() => null);
     if (!isChargeResponse(body)) return { kind: "unavailable" };
-    if (res.status === 201 && body.status === "approved")
-      return { kind: "approved", response: body };
+    if (res.status === 201 && body.status === "approved") {
+      // Never credit money the gateway did not confirm for this exact request.
+      const matches =
+        Math.round((body.transaction_amount ?? NaN) * 100) ===
+          Math.round(req.amount * 100) && body.payer_id === req.payer_id;
+      return matches
+        ? { kind: "approved", response: body }
+        : { kind: "unavailable", response: body };
+    }
     if ([400, 413, 415, 422].includes(res.status))
       return { kind: "invalid", response: body };
     if (res.status === 402) return { kind: "rejected", response: body };

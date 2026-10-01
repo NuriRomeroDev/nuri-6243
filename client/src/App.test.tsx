@@ -144,9 +144,13 @@ const chargeResponse = (status: string, detail: string) => ({
 const topUp = (httpStatus: number, body: unknown) => {
   vi.stubGlobal(
     "fetch",
-    vi.fn(
-      async () => new Response(JSON.stringify(body), { status: httpStatus }),
-    ),
+    vi.fn(async (_url: string, init: RequestInit) => {
+      // Echo the real payer like the server does, so the response matches the request.
+      const { payer_id } = JSON.parse(init.body as string);
+      return new Response(JSON.stringify({ ...(body as object), payer_id }), {
+        status: httpStatus,
+      });
+    }),
   );
   fireEvent.click(screen.getByRole("button", { name: /Cargar saldo/ }));
   fill({
