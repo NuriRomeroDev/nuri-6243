@@ -70,7 +70,12 @@ export function BarChart({ wins }: { wins: Record<SnailId, number> }) {
                   }}
                 />
               </div>
-              <img src={new URL(`../assets/snails/${id}.webp`, import.meta.url).href} alt="" />
+              <img
+                src={
+                  new URL(`../assets/snails/${id}.webp`, import.meta.url).href
+                }
+                alt=""
+              />
               <span>{name}</span>
             </div>
           ))}

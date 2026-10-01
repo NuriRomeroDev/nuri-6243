@@ -46,7 +46,9 @@ it("shows the simulated bets with percentages", () => {
   setup();
   const { won, lost } = simulateDay(user.id, new Date()).bets;
   const total = won + lost;
-  const figure = screen.getByRole("figure", { name: "Apuestas ganadas y perdidas" });
+  const figure = screen.getByRole("figure", {
+    name: "Apuestas ganadas y perdidas",
+  });
   expect(within(figure).getByText(`${won} ganadas`)).toBeVisible();
   expect(within(figure).getByText(`${lost} perdidas`)).toBeVisible();
   expect(
