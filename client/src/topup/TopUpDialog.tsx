@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { User } from "../auth/auth";
 import { usd } from "../dashboard/Dashboard";
+import { amount, cardNumber, cvv, expiry, personName } from "../ui/masks";
 import { TextField } from "../ui/TextField";
 import {
   ArrowRightIcon,
@@ -73,13 +74,17 @@ const REJECTED_COPY: Record<string, string> = {
   cc_rejected_card_not_recognized: "No reconocemos esta tarjeta de prueba.",
 };
 
+// Single source for the test-card list and the quick-fill values.
 const TEST_CARDS = [
-  ["Aprobada", "1234 1234 1234 1234 · 12/26 · 543"],
+  ["Aprobada", "1234 1234 1234 1234"],
   ["Rechazada", "4000 0000 0000 0002"],
   ["Fondos insuficientes", "4000 0000 0000 9995"],
   ["SnailPay no disponible", "5000 0000 0000 0009"],
   ["Tiempo agotado", "5000 0000 0000 0017"],
-];
+] as const;
+const TEST_EXP = "12/26";
+const TEST_CVV = "543";
+const TEST_AMOUNT = "100.00";
 
 export function TopUpDialog({
   user,
@@ -90,6 +95,10 @@ export function TopUpDialog({
 }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const submitRef = useRef<HTMLButtonElement>(null);
+  const detailsRef = useRef<HTMLDetailsElement>(null);
+  // Set by the quick-fill so the focus effect below lands on submit, not the first field.
+  const focusSubmit = useRef(false);
   const [view, setView] = useState<View>({ name: "form" });
   const [fields, setFields] = useState<Fields>(EMPTY);
   const [errors, setErrors] = useState<Errors>({});
@@ -109,7 +118,10 @@ export function TopUpDialog({
 
   // Form: focus the first invalid field (or the first field); result: the heading.
   useEffect(() => {
-    if (view.name === "form")
+    if (view.name === "form" && focusSubmit.current) {
+      focusSubmit.current = false;
+      submitRef.current?.focus();
+    } else if (view.name === "form")
       (
         dialogRef.current?.querySelector<HTMLElement>(
           '[aria-invalid="true"]',
@@ -169,6 +181,20 @@ export function TopUpDialog({
   const set = (name: FieldName) => (value: string) =>
     setFields((f) => ({ ...f, [name]: value }));
 
+  function fillTestCard(card: string) {
+    setFields((f) => ({
+      card: cardNumber(card),
+      exp: TEST_EXP,
+      cvv: TEST_CVV,
+      name: f.name || personName(user.fullName),
+      amount: f.amount || TEST_AMOUNT,
+    }));
+    setErrors({});
+    setFormError("");
+    if (detailsRef.current) detailsRef.current.open = false;
+    focusSubmit.current = true;
+  }
+
   const retryForm = () => {
     setFields((f) => ({ ...f, cvv: "" }));
     setErrors({});
@@ -209,7 +235,7 @@ export function TopUpDialog({
             placeholder="1234 5678 9012 3456"
             value={fields.card}
             error={errors.card}
-            onChange={set("card")}
+            onChange={(v) => set("card")(cardNumber(v))}
           />
           <div className="field-row">
             <TextField
@@ -220,7 +246,7 @@ export function TopUpDialog({
               placeholder="MM/AA"
               value={fields.exp}
               error={errors.exp}
-              onChange={set("exp")}
+              onChange={(v) => set("exp")(expiry(v))}
             />
             <TextField
               label="CVV"
@@ -231,7 +257,7 @@ export function TopUpDialog({
               placeholder="123"
               value={fields.cvv}
               error={errors.cvv}
-              onChange={set("cvv")}
+              onChange={(v) => set("cvv")(cvv(v))}
             />
           </div>
           <TextField
@@ -242,7 +268,7 @@ export function TopUpDialog({
             placeholder="Como aparece en la tarjeta"
             value={fields.name}
             error={errors.name}
-            onChange={set("name")}
+            onChange={(v) => set("name")(personName(v))}
           />
           <TextField
             label="Monto a cargar"
@@ -254,7 +280,7 @@ export function TopUpDialog({
             hint="Máximo $10,000.00"
             value={fields.amount}
             error={errors.amount}
-            onChange={set("amount")}
+            onChange={(v) => set("amount")(amount(v))}
           />
           {formError && (
             <p className="form-error" role="alert">
@@ -264,20 +290,33 @@ export function TopUpDialog({
           <p className="topup-note">
             Estás en un entorno de prueba: no uses datos reales.
           </p>
-          <details className="test-cards">
+          <details className="test-cards" ref={detailsRef}>
             <summary>Tarjetas de prueba</summary>
             <table>
               <tbody>
                 {TEST_CARDS.map(([outcome, card]) => (
                   <tr key={outcome}>
                     <th scope="row">{outcome}</th>
-                    <td>{card}</td>
+                    <td>
+                      {card}
+                      {outcome === "Aprobada" && ` · ${TEST_EXP} · ${TEST_CVV}`}
+                    </td>
+                    <td>
+                      <button
+                        type="button"
+                        className="link"
+                        aria-label={`Usar tarjeta: ${outcome}`}
+                        onClick={() => fillTestCard(card)}
+                      >
+                        Usar
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </details>
-          <button type="submit" className="primary">
+          <button type="submit" className="primary" ref={submitRef}>
             Pagar con SnailPay <ArrowRightIcon />
           </button>
         </form>

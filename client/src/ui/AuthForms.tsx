@@ -5,6 +5,7 @@ import type {
   RegisterValues,
 } from "../auth/validation";
 import { ArrowRightIcon, LockIcon, MailIcon, UserIcon } from "./icons";
+import { email, personName } from "./masks";
 import { TextField } from "./TextField";
 
 type FormProps<V> = {
@@ -114,7 +115,7 @@ export function LoginForm({
         type="email"
         autoComplete="email"
         value={values.email}
-        onChange={set("email")}
+        onChange={(v) => set("email")(email(v))}
         error={errors.email}
       />
       <TextField
@@ -164,7 +165,7 @@ export function RegisterForm({
         type="text"
         autoComplete="name"
         value={values.fullName}
-        onChange={set("fullName")}
+        onChange={(v) => set("fullName")(personName(v))}
         error={errors.fullName}
       />
       <TextField
@@ -175,7 +176,7 @@ export function RegisterForm({
         type="email"
         autoComplete="email"
         value={values.email}
-        onChange={set("email")}
+        onChange={(v) => set("email")(email(v))}
         error={errors.email}
       />
       <TextField

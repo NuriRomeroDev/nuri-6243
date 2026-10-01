@@ -216,3 +216,45 @@ it("top-up: closing the dialog returns focus to the Cargar saldo button", async 
   click("Cerrar ventana");
   expect(trigger).toHaveFocus();
 });
+
+it("masks the register name and email but never the password", () => {
+  render(<App />);
+  click("Crear cuenta");
+  fill({
+    "Nombre completo": "Ana2 Torres!",
+    "Correo electrónico": "ana @example.com",
+    Contraseña: "Abc$%123",
+  });
+  expect(screen.getByLabelText("Nombre completo")).toHaveValue("Ana Torres");
+  expect(screen.getByLabelText("Correo electrónico")).toHaveValue(
+    "ana@example.com",
+  );
+  expect(
+    screen.getByLabelText("Contraseña", { selector: "input" }),
+  ).toHaveValue("Abc$%123");
+});
+
+it("top-up: a test card fill plus submit credits the balance", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (_url: string, init: RequestInit) => {
+      const { payer_id } = JSON.parse(init.body as string);
+      return new Response(
+        JSON.stringify({
+          ...chargeResponse("approved", "accredited"),
+          transaction_amount: 100,
+          payer_id,
+        }),
+        { status: 201 },
+      );
+    }),
+  );
+  render(<App />);
+  await registerAda();
+  fireEvent.click(screen.getByRole("button", { name: /Cargar saldo/ }));
+  click("Usar tarjeta: Aprobada");
+  click("Pagar con SnailPay");
+  await screen.findByRole("heading", { name: "Pago aprobado" });
+  click("Listo");
+  expect(screen.getByText("$100.00")).toBeVisible();
+});
