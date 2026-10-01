@@ -11,7 +11,7 @@ import {
 import { BarChart, DonutChart } from "./Charts";
 import { RACES_PER_DAY, simulateDay } from "./stats";
 
-const usd = new Intl.NumberFormat("en-US", {
+export const usd = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
 });

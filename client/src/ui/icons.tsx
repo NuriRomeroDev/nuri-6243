@@ -74,6 +74,27 @@ export const TrophyIcon = () => (
     <path d="M7 6H4v1a4 4 0 0 0 3 3.9M17 6h3v1a4 4 0 0 1-3 3.9" />
   </Svg>
 );
+export const CheckIcon = () => (
+  <Svg>
+    <path d="m5 12.5 4.5 4.5L19 7.5" />
+  </Svg>
+);
+export const XIcon = () => (
+  <Svg>
+    <path d="M6 6l12 12M18 6 6 18" />
+  </Svg>
+);
+export const WarningIcon = () => (
+  <Svg>
+    <path d="M12 3 2 20h20L12 3ZM12 10v5M12 18h.01" />
+  </Svg>
+);
+export const ClockIcon = () => (
+  <Svg>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 7v5l3 2" />
+  </Svg>
+);
 
 export const SnailMark = () => (
   <svg

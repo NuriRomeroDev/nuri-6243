@@ -39,7 +39,7 @@ export function simulateDay(userId: string, date: Date) {
   const rand = mulberry32(hash(key));
   const races = Array.from(
     { length: RACES_PER_DAY },
-    () => SNAILS[Math.floor(rand() * SNAILS.length)].id,
+    () => SNAILS[Math.floor(rand() * SNAILS.length)]!.id,
   );
   const wins = Object.fromEntries(SNAILS.map((s) => [s.id, 0])) as Record<
     SnailId,

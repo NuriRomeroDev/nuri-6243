@@ -11,6 +11,7 @@ type Props = {
   error?: string | undefined;
   hint?: string;
   placeholder?: string;
+  inputMode?: "numeric" | "decimal";
   icon?: ReactNode;
 };
 
@@ -24,6 +25,7 @@ export function TextField({
   error,
   hint,
   placeholder,
+  inputMode,
   icon,
 }: Props) {
   const [visible, setVisible] = useState(false);
@@ -43,6 +45,7 @@ export function TextField({
           type={isPassword && visible ? "text" : type}
           autoComplete={autoComplete}
           placeholder={placeholder}
+          inputMode={inputMode}
           value={value}
           required
           aria-invalid={error ? "true" : undefined}
