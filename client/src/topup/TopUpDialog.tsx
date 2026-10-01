@@ -211,7 +211,6 @@ export function TopUpDialog({
             value={fields.card}
             error={errors.card}
             onChange={(v) => set("card")(cardNumber(v))}
-            maxLength={19}
           />
           <div className="field-row">
             <TextField
@@ -223,7 +222,6 @@ export function TopUpDialog({
               value={fields.exp}
               error={errors.exp}
               onChange={(v) => set("exp")(expiry(v))}
-              maxLength={5}
             />
             <TextField
               label="CVV"
@@ -235,7 +233,6 @@ export function TopUpDialog({
               value={fields.cvv}
               error={errors.cvv}
               onChange={(v) => set("cvv")(cvv(v))}
-              maxLength={3}
             />
           </div>
           <TextField
@@ -259,7 +256,6 @@ export function TopUpDialog({
             value={fields.amount}
             error={errors.amount}
             onChange={(v) => set("amount")(amount(v))}
-            maxLength={9}
           />
           {formError && (
             <p className="form-error" role="alert">

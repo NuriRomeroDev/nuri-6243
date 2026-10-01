@@ -247,7 +247,12 @@ it.each([
 // truncating pasted input like "4000 - 0000 - 0000 - 0002" and dropping digits after a rejected key.
 it("leaves length limits to the masks, not maxLength", () => {
   setup(reply(201, {}));
-  for (const label of ["Número de tarjeta", "Vencimiento", "CVV", "Monto a cargar"])
+  for (const label of [
+    "Número de tarjeta",
+    "Vencimiento",
+    "CVV",
+    "Monto a cargar",
+  ])
     expect(screen.getByLabelText(label)).not.toHaveAttribute("maxlength");
   fireEvent.change(screen.getByLabelText("Número de tarjeta"), {
     target: { value: "4000 - 0000 - 0000 - 0002" },
