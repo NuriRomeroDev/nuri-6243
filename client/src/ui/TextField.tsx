@@ -1,3 +1,6 @@
+import { useState, type ReactNode } from "react";
+import { EyeIcon, EyeOffIcon } from "./icons";
+
 type Props = {
   label: string;
   name: string;
@@ -7,6 +10,8 @@ type Props = {
   onChange: (value: string) => void;
   error?: string | undefined;
   hint?: string;
+  placeholder?: string;
+  icon?: ReactNode;
 };
 
 export function TextField({
@@ -18,7 +23,11 @@ export function TextField({
   onChange,
   error,
   hint,
+  placeholder,
+  icon,
 }: Props) {
+  const [visible, setVisible] = useState(false);
+  const isPassword = type === "password";
   const errorId = `${name}-error`;
   const hintId = `${name}-hint`;
   const describedBy =
@@ -26,17 +35,33 @@ export function TextField({
   return (
     <div className="field">
       <label htmlFor={name}>{label}</label>
-      <input
-        id={name}
-        name={name}
-        type={type}
-        autoComplete={autoComplete}
-        value={value}
-        required
-        aria-invalid={error ? "true" : undefined}
-        aria-describedby={describedBy}
-        onChange={(e) => onChange(e.target.value)}
-      />
+      <div className="input-wrap">
+        {icon && <span className="input-icon">{icon}</span>}
+        <input
+          id={name}
+          name={name}
+          type={isPassword && visible ? "text" : type}
+          autoComplete={autoComplete}
+          placeholder={placeholder}
+          value={value}
+          required
+          aria-invalid={error ? "true" : undefined}
+          aria-describedby={describedBy}
+          onChange={(e) => onChange(e.target.value)}
+        />
+        {isPassword && (
+          <button
+            type="button"
+            className="toggle"
+            aria-label={visible ? "Ocultar contraseña" : "Mostrar contraseña"}
+            aria-pressed={visible}
+            aria-controls={name}
+            onClick={() => setVisible((v) => !v)}
+          >
+            {visible ? <EyeOffIcon /> : <EyeIcon />}
+          </button>
+        )}
+      </div>
       {hint && (
         <p id={hintId} className="field-hint">
           {hint}

@@ -59,3 +59,13 @@ describe("validateLogin", () => {
 it("normalizeEmail trims and lowercases", () => {
   expect(normalizeEmail("  Ada@Example.COM ")).toBe("ada@example.com");
 });
+
+it("returns Spanish messages", () => {
+  expect(validateRegister({ ...valid, confirmPassword: "x" })).toEqual({
+    confirmPassword: "Las contraseñas no coinciden",
+  });
+  expect(validateLogin({ email: "", password: "" })).toEqual({
+    email: "Ingresa tu correo",
+    password: "Ingresa tu contraseña",
+  });
+});

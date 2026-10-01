@@ -6,7 +6,6 @@ export function App() {
   const { user, register, login, logout } = useAuth();
   return (
     <main className="app">
-      <h1>Snail Racing</h1>
       {user ? (
         <Home user={user} onLogout={logout} />
       ) : (

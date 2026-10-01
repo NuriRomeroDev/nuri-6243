@@ -7,6 +7,7 @@ import {
   type LoginValues,
   type RegisterValues,
 } from "../auth/validation";
+import { Brand } from "./icons";
 import { LoginForm, RegisterForm } from "./AuthForms";
 
 type Props = {
@@ -39,11 +40,11 @@ export function AuthScreen({ onRegister, onLogin }: Props) {
       const result = await run();
       if (result.ok) return;
       if (result.error === "EMAIL_TAKEN")
-        setFieldErrors({ email: "An account with this email already exists" });
-      else setFormError("Invalid email or password");
+        setFieldErrors({ email: "Ya existe una cuenta con este correo" });
+      else setFormError("Correo o contraseña inválidos");
     } catch {
       setFormError(
-        "Could not save your data. Check browser storage and try again.",
+        "No pudimos guardar tus datos. Revisa el almacenamiento del navegador e inténtalo de nuevo.",
       );
     } finally {
       setPending(false);
@@ -52,27 +53,37 @@ export function AuthScreen({ onRegister, onLogin }: Props) {
 
   const shared = { pending, formError, onSwitch: switchMode };
 
-  return mode === "login" ? (
-    <LoginForm
-      {...shared}
-      errors={fieldErrors}
-      onSubmit={(v: LoginValues) =>
-        void submit(validateLogin(v), () => onLogin(v.email, v.password))
-      }
-    />
-  ) : (
-    <RegisterForm
-      {...shared}
-      errors={fieldErrors}
-      onSubmit={(v) =>
-        void submit(validateRegister(v), () =>
-          onRegister({
-            fullName: v.fullName,
-            email: v.email,
-            password: v.password,
-          }),
-        )
-      }
-    />
+  const form =
+    mode === "login" ? (
+      <LoginForm
+        {...shared}
+        errors={fieldErrors}
+        onSubmit={(v: LoginValues) =>
+          void submit(validateLogin(v), () => onLogin(v.email, v.password))
+        }
+      />
+    ) : (
+      <RegisterForm
+        {...shared}
+        errors={fieldErrors}
+        onSubmit={(v) =>
+          void submit(validateRegister(v), () =>
+            onRegister({
+              fullName: v.fullName,
+              email: v.email,
+              password: v.password,
+            }),
+          )
+        }
+      />
+    );
+  return (
+    <section className="auth-card">
+      <div className="auth-panel">
+        <Brand />
+        {form}
+      </div>
+      <div className="auth-hero" aria-hidden="true" />
+    </section>
   );
 }

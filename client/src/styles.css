@@ -1,35 +1,23 @@
 :root {
-  --color-bg: #f4f6f8;
-  --color-surface: #ffffff;
-  --color-text: #1b2430;
-  --color-muted: #5b6776;
-  --color-border: #c9d1da;
-  --color-primary: #2f7d4f;
-  --color-primary-contrast: #ffffff;
-  --color-error: #b3261e;
-  --color-focus: #1a73e8;
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 1rem;
-  --space-4: 1.5rem;
-  --space-5: 2rem;
-  --radius: 0.5rem;
-  --shadow: 0 1px 3px rgb(0 0 0 / 0.08), 0 8px 24px rgb(0 0 0 / 0.06);
-  --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #12171d;
-    --color-surface: #1b232c;
-    --color-text: #e8edf2;
-    --color-muted: #9aa6b2;
-    --color-border: #38434f;
-    --color-primary: #4caf78;
-    --color-primary-contrast: #0b1a11;
-    --color-error: #f2857e;
-    --color-focus: #8ab4f8;
-  }
+  color-scheme: light;
+  --green-900: #0f3324;
+  --green-800: #163f2d;
+  --focus-ring: rgb(110 143 99 / 0.45);
+  --cream-50: #fbf8f1;
+  --cream-100: #f5f1e8;
+  --line: #ddd8cc;
+  /* Field borders need 3:1 against white (WCAG 1.4.11); --line is only for dividers. */
+  --field-line: #8f9690;
+  --text: #1b1f1c;
+  --muted: #5e645f;
+  --error-line: #ef685e;
+  --error-text: #b3261e;
+  --radius-card: 24px;
+  --radius-field: 10px;
+  --shadow: 0 2px 6px rgb(22 63 45 / 0.06), 0 24px 60px rgb(22 63 45 / 0.12);
+  --font-display:
+    "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 * {
@@ -38,46 +26,97 @@
 
 body {
   margin: 0;
-  background: var(--color-bg);
-  color: var(--color-text);
-  font-family: var(--font);
+  background: var(--cream-100);
+  color: var(--text);
+  font-family: var(--font-body);
   line-height: 1.5;
 }
 
 .app {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-5) var(--space-3);
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 16px;
 }
 
-h1 {
-  margin: 0;
-  font-size: 1.75rem;
+h1,
+h2,
+button {
+  font-family: var(--font-display);
 }
 
 h2 {
-  margin: 0 0 var(--space-3);
-  font-size: 1.25rem;
+  margin: 0 0 8px;
+  font-size: 1.875rem;
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--green-800);
 }
 
-.card,
-form {
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 32px;
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--green-800);
+}
+
+.brand svg {
+  width: 56px;
+  height: 56px;
+}
+
+.wordmark span {
+  display: block;
+}
+
+.auth-card,
+.card {
   width: 100%;
-  max-width: 24rem;
-  padding: var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  max-width: 1120px;
+  background: var(--cream-50);
+  border-radius: var(--radius-card);
   box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.auth-card {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.auth-panel,
+.card {
+  padding: 32px 20px;
+}
+
+.card {
+  max-width: 480px;
+}
+
+.auth-hero {
+  display: none;
+  background: url("./assets/snail-login-hero-portrait.webp") center / cover
+    no-repeat;
+}
+
+.subtitle {
+  margin: 0 0 24px;
+  color: var(--muted);
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
-  margin-bottom: var(--space-3);
+  gap: 6px;
+  margin-bottom: 16px;
 }
 
 label {
@@ -85,69 +124,179 @@ label {
   font-size: 0.875rem;
 }
 
-input {
-  padding: var(--space-2) 0.75rem;
-  font: inherit;
-  color: inherit;
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+.input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
-[aria-invalid="true"] {
-  border-color: var(--color-error);
+.input-icon,
+.toggle {
+  position: absolute;
+  display: flex;
+  color: var(--muted);
+}
+
+.input-icon {
+  left: 16px;
+  pointer-events: none;
+}
+
+input {
+  width: 100%;
+  height: 56px;
+  padding: 0 48px;
+  font: inherit;
+  color: var(--text);
+  background: #fff;
+  border: 1px solid var(--field-line);
+  border-radius: var(--radius-field);
+}
+
+input::placeholder {
+  color: var(--muted);
+}
+
+input:focus-visible {
+  border-color: var(--green-800);
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 0;
+}
+
+input[aria-invalid="true"] {
+  border-color: var(--error-line);
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-focus);
+  outline: 2px solid var(--green-800);
   outline-offset: 2px;
+}
+
+.toggle {
+  right: 8px;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-field);
+  cursor: pointer;
 }
 
 .field-error,
 .form-error {
   margin: 0;
   font-size: 0.875rem;
-  color: var(--color-error);
+  color: var(--error-text);
 }
 
 .field-hint,
 .balance-label {
   margin: 0;
   font-size: 0.8125rem;
-  color: var(--color-muted);
+  color: var(--muted);
 }
 
 .form-error {
-  margin-bottom: var(--space-3);
+  margin-bottom: 16px;
 }
 
 .balance {
-  margin: 0 0 var(--space-4);
+  margin: 0 0 24px;
+  font-family: var(--font-display);
   font-size: 2rem;
-  font-weight: 700;
+  font-weight: 800;
 }
 
-button {
+button.primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   width: 100%;
-  padding: var(--space-2) var(--space-3);
-  font: inherit;
+  height: 56px;
+  font-size: 1rem;
   font-weight: 600;
-  color: var(--color-primary-contrast);
-  background: var(--color-primary);
+  color: #fff;
+  background: var(--green-800);
   border: 0;
-  border-radius: var(--radius);
+  border-radius: var(--radius-field);
   cursor: pointer;
 }
 
+button.primary:hover:not(:disabled) {
+  background: var(--green-900);
+}
+
+button.primary:disabled {
+  background: #c9c4b8;
+  cursor: not-allowed;
+}
+
+.divider {
+  margin: 24px 0 16px;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+.switch {
+  margin: 0;
+  text-align: center;
+  color: var(--muted);
+}
+
 button.link {
-  margin-top: var(--space-2);
-  color: var(--color-muted);
+  padding: 0;
+  font-weight: 600;
+  color: var(--green-800);
   background: none;
-  font-weight: 400;
+  border: 0;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+button.link:hover {
   text-decoration: underline;
 }
 
-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+@media (min-width: 560px) {
+  .app {
+    padding: 32px;
+  }
+
+  .auth-panel,
+  .card {
+    padding: 48px;
+  }
+}
+
+@media (min-width: 860px) {
+  h2 {
+    font-size: 2.5rem;
+  }
+
+  /* Tall card so the portrait illustration is not cropped to a strip on the short login form. */
+  .auth-card {
+    grid-template-columns: 42fr 58fr;
+    min-height: min(820px, calc(100vh - 64px));
+    min-height: min(820px, calc(100dvh - 64px));
+  }
+
+  .auth-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 56px 64px;
+  }
+
+  .brand svg {
+    width: 72px;
+    height: 72px;
+  }
+
+  .auth-hero {
+    display: block;
+  }
 }

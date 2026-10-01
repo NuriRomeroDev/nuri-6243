@@ -18,21 +18,21 @@ export function validateRegister(
   const name = v.fullName.trim();
   const email = normalizeEmail(v.email);
   if (name.length < 2 || name.length > 100)
-    errors.fullName = "Enter your name (2-100 characters)";
+    errors.fullName = "Ingresa tu nombre (2 a 100 caracteres)";
   if (!EMAIL_RE.test(email) || email.length > 254)
-    errors.email = "Enter a valid email address";
+    errors.email = "Ingresa un correo válido";
   if (v.password.length < 8 || v.password.length > 128)
-    errors.password = "Use 8-128 characters";
+    errors.password = "Usa entre 8 y 128 caracteres";
   else if (!/[A-Za-z]/.test(v.password) || !/\d/.test(v.password))
-    errors.password = "Include at least one letter and one number";
+    errors.password = "Incluye al menos una letra y un número";
   if (v.confirmPassword !== v.password)
-    errors.confirmPassword = "Passwords do not match";
+    errors.confirmPassword = "Las contraseñas no coinciden";
   return errors;
 }
 
 export function validateLogin(v: LoginValues): FieldErrors<LoginValues> {
   const errors: FieldErrors<LoginValues> = {};
-  if (!v.email.trim()) errors.email = "Enter your email";
-  if (!v.password) errors.password = "Enter your password";
+  if (!v.email.trim()) errors.email = "Ingresa tu correo";
+  if (!v.password) errors.password = "Ingresa tu contraseña";
   return errors;
 }
