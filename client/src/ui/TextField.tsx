@@ -12,6 +12,7 @@ type Props = {
   hint?: string;
   placeholder?: string;
   inputMode?: "numeric" | "decimal";
+  maxLength?: number;
   icon?: ReactNode;
 };
 
@@ -26,6 +27,7 @@ export function TextField({
   hint,
   placeholder,
   inputMode,
+  maxLength,
   icon,
 }: Props) {
   const [visible, setVisible] = useState(false);
@@ -46,6 +48,7 @@ export function TextField({
           autoComplete={autoComplete}
           placeholder={placeholder}
           inputMode={inputMode}
+          maxLength={maxLength}
           value={value}
           required
           aria-invalid={error ? "true" : undefined}

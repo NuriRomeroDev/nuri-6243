@@ -245,12 +245,13 @@ it.each([
 
 it("limits input length with maxLength attributes", () => {
   setup(reply(201, {}));
-  for (const [label, max] of [
-    ["Número de tarjeta", "19"],
-    ["Vencimiento", "5"],
-    ["CVV", "3"],
-    ["Monto a cargar", "9"],
-  ])
+  const limits: Record<string, string> = {
+    "Número de tarjeta": "19",
+    Vencimiento: "5",
+    CVV: "3",
+    "Monto a cargar": "9",
+  };
+  for (const [label, max] of Object.entries(limits))
     expect(screen.getByLabelText(label)).toHaveAttribute("maxlength", max);
 });
 

@@ -229,7 +229,7 @@ it("masks the register name and email but never the password", () => {
   expect(screen.getByLabelText("Correo electrónico")).toHaveValue(
     "ana@example.com",
   );
-  expect(screen.getByLabelText("Contraseña", { selector: "input" })).toHaveValue(
-    "Abc$%123",
-  );
+  expect(
+    screen.getByLabelText("Contraseña", { selector: "input" }),
+  ).toHaveValue("Abc$%123");
 });

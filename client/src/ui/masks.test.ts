@@ -1,12 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  amount,
-  cardNumber,
-  cvv,
-  email,
-  expiry,
-  personName,
-} from "./masks";
+import { amount, cardNumber, cvv, email, expiry, personName } from "./masks";
 
 describe("cardNumber", () => {
   it.each([

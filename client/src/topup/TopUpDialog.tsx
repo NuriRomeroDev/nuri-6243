@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { User } from "../auth/auth";
 import { usd } from "../dashboard/Dashboard";
+import { amount, cardNumber, cvv, expiry, personName } from "../ui/masks";
 import { TextField } from "../ui/TextField";
 import {
   ArrowRightIcon,
@@ -209,7 +210,8 @@ export function TopUpDialog({
             placeholder="1234 5678 9012 3456"
             value={fields.card}
             error={errors.card}
-            onChange={set("card")}
+            onChange={(v) => set("card")(cardNumber(v))}
+            maxLength={19}
           />
           <div className="field-row">
             <TextField
@@ -220,7 +222,8 @@ export function TopUpDialog({
               placeholder="MM/AA"
               value={fields.exp}
               error={errors.exp}
-              onChange={set("exp")}
+              onChange={(v) => set("exp")(expiry(v))}
+              maxLength={5}
             />
             <TextField
               label="CVV"
@@ -231,7 +234,8 @@ export function TopUpDialog({
               placeholder="123"
               value={fields.cvv}
               error={errors.cvv}
-              onChange={set("cvv")}
+              onChange={(v) => set("cvv")(cvv(v))}
+              maxLength={3}
             />
           </div>
           <TextField
@@ -242,7 +246,7 @@ export function TopUpDialog({
             placeholder="Como aparece en la tarjeta"
             value={fields.name}
             error={errors.name}
-            onChange={set("name")}
+            onChange={(v) => set("name")(personName(v))}
           />
           <TextField
             label="Monto a cargar"
@@ -254,7 +258,8 @@ export function TopUpDialog({
             hint="Máximo $10,000.00"
             value={fields.amount}
             error={errors.amount}
-            onChange={set("amount")}
+            onChange={(v) => set("amount")(amount(v))}
+            maxLength={9}
           />
           {formError && (
             <p className="form-error" role="alert">
