@@ -220,6 +220,7 @@ describe("recordCharge", () => {
     cvv: "543",
     ...over,
   });
+  const credit = { credit: true };
   const stored = () =>
     JSON.parse(localStorage.getItem(TRANSACTIONS_KEY) ?? "{}");
   const setup = async () => {
@@ -230,15 +231,15 @@ describe("recordCharge", () => {
 
   it("credits an approved charge in cents and persists the user", async () => {
     const user = await setup();
-    const updated = recordCharge(user.id, response());
+    const updated = recordCharge(user.id, response(), credit);
     expect(updated.balanceCents).toBe(1999);
     expect(currentUser()?.balanceCents).toBe(1999);
   });
 
   it("credits the same transaction id only once", async () => {
     const user = await setup();
-    recordCharge(user.id, response());
-    const again = recordCharge(user.id, response());
+    recordCharge(user.id, response(), credit);
+    const again = recordCharge(user.id, response(), credit);
     expect(again.balanceCents).toBe(1999);
     expect(stored()[user.id]).toHaveLength(1);
   });
@@ -248,18 +249,27 @@ describe("recordCharge", () => {
     recordCharge(
       user.id,
       response({ id: "r", status: "rejected", authorization_code: null }),
+      { credit: false },
     );
     const updated = recordCharge(
       user.id,
       response({ id: "e", status: "error", authorization_code: null }),
+      { credit: false },
     );
     expect(updated.balanceCents).toBe(0);
     expect(stored()[user.id]).toHaveLength(2);
   });
 
+  it("stores but never credits an approved-shaped body when credit is false", async () => {
+    const user = await setup();
+    const updated = recordCharge(user.id, response(), { credit: false });
+    expect(updated.balanceCents).toBe(0);
+    expect(stored()[user.id]).toHaveLength(1);
+  });
+
   it("keeps the full response, including card number and CVV", async () => {
     const user = await setup();
-    recordCharge(user.id, response());
+    recordCharge(user.id, response(), credit);
     expect(stored()[user.id][0]).toMatchObject({
       card_number: "1234123412341234",
       cvv: "543",
@@ -271,6 +281,7 @@ describe("recordCharge", () => {
     const updated = recordCharge(
       user.id,
       response({ transaction_amount: 0.1 + 0.2 }),
+      credit,
     );
     expect(updated.balanceCents).toBe(30);
   });
@@ -278,13 +289,17 @@ describe("recordCharge", () => {
   it("survives corrupted transactions data", async () => {
     const user = await setup();
     localStorage.setItem(TRANSACTIONS_KEY, "{not json");
-    expect(recordCharge(user.id, response()).balanceCents).toBe(1999);
+    expect(recordCharge(user.id, response(), credit).balanceCents).toBe(1999);
     localStorage.setItem(
       TRANSACTIONS_KEY,
       JSON.stringify({ [user.id]: [{ junk: true }, response({ id: "ok" })] }),
     );
     // The valid "ok" entry is kept; the junk one is dropped.
-    recordCharge(user.id, response({ id: "t2", transaction_amount: 1 }));
+    recordCharge(
+      user.id,
+      response({ id: "t2", transaction_amount: 1 }),
+      credit,
+    );
     expect(stored()[user.id].map((t: { id: string }) => t.id)).toEqual([
       "ok",
       "t2",

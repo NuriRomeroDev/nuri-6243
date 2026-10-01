@@ -183,3 +183,16 @@ it("top-up: a rejected charge leaves the balance unchanged", async () => {
   click("Cerrar ventana");
   expect(screen.getByText("$0.00")).toBeVisible();
 });
+
+it("top-up: a 200 approved-shaped body does not credit but is stored", async () => {
+  render(<App />);
+  await registerAda();
+  topUp(200, chargeResponse("approved", "accredited"));
+  await screen.findByRole("heading", { name: "SnailPay no está disponible" });
+  click("Entendido");
+  expect(screen.getByText("$0.00")).toBeVisible();
+  const stored = Object.values(
+    JSON.parse(localStorage.getItem(TRANSACTIONS_KEY) ?? "{}"),
+  )[0] as unknown[];
+  expect(stored).toHaveLength(1);
+});

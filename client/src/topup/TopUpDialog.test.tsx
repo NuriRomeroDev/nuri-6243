@@ -108,7 +108,10 @@ it("approves: sends a clean payload, records the charge and shows the code", asy
     payer_email: "ada@example.com",
   });
   expect(onCharge).toHaveBeenCalledWith(
-    expect.objectContaining({ id: "t1", status: "approved" }),
+    expect.objectContaining({
+      kind: "approved",
+      response: expect.objectContaining({ id: "t1" }),
+    }),
   );
   fireEvent.click(screen.getByRole("button", { name: "Listo" }));
   expect(onClose).toHaveBeenCalled();
@@ -204,4 +207,14 @@ it("422 returns to the form with the matching field error", async () => {
   // Focus moves in a passive effect, so it may land just after the DOM update.
   await waitFor(() => expect(screen.getByLabelText("CVV")).toHaveFocus());
   expect(onCharge).toHaveBeenCalledOnce();
+});
+
+it("a 200 approved-shaped body is unavailable and never flagged as approved", async () => {
+  const { onCharge } = setup(reply(200, envelope("approved", "accredited")));
+  fill();
+  submit();
+  await screen.findByRole("heading", { name: "SnailPay no está disponible" });
+  expect(onCharge).toHaveBeenCalledWith(
+    expect.objectContaining({ kind: "unavailable" }),
+  );
 });
