@@ -1,0 +1,9 @@
+# Render Blueprint: one Node web service serves both the API and the built React client.
+services:
+  - type: web
+    name: snail-club
+    runtime: node
+    plan: free
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
