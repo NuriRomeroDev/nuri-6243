@@ -274,3 +274,54 @@ it("submits 16 digits when the card is typed without spaces", async () => {
   );
   expect(body.card_number).toBe("1234123412341234");
 });
+
+const useCard = (outcome: string) =>
+  fireEvent.click(screen.getByRole("button", { name: `Usar tarjeta: ${outcome}` }));
+
+it("Usar tarjeta fills the card, name and amount and focuses submit", () => {
+  setup(reply(201, {}));
+  const details = screen.getByText("Tarjetas de prueba").closest("details");
+  details?.setAttribute("open", "");
+  useCard("Aprobada");
+  expect(screen.getByLabelText("Número de tarjeta")).toHaveValue(
+    "1234 1234 1234 1234",
+  );
+  expect(screen.getByLabelText("Vencimiento")).toHaveValue("12/26");
+  expect(screen.getByLabelText("CVV")).toHaveValue("543");
+  expect(screen.getByLabelText("Nombre del titular")).toHaveValue(
+    "Ada Lovelace",
+  );
+  expect(screen.getByLabelText("Monto a cargar")).toHaveValue("100.00");
+  expect(details).not.toHaveAttribute("open");
+  expect(
+    screen.getByRole("button", { name: /Pagar con SnailPay/ }),
+  ).toHaveFocus();
+});
+
+it("Usar tarjeta keeps a typed name and amount and clears errors", () => {
+  setup(reply(201, {}));
+  fill({ "Número de tarjeta": "1", "Nombre del titular": "Grace Hopper", "Monto a cargar": "20" });
+  submit();
+  expect(screen.getByLabelText("Número de tarjeta")).toHaveAttribute(
+    "aria-invalid",
+    "true",
+  );
+  useCard("Rechazada");
+  expect(screen.getByLabelText("Número de tarjeta")).toHaveValue(
+    "4000 0000 0000 0002",
+  );
+  expect(screen.getByLabelText("Nombre del titular")).toHaveValue(
+    "Grace Hopper",
+  );
+  expect(screen.getByLabelText("Monto a cargar")).toHaveValue("20");
+  expect(screen.getByLabelText("Número de tarjeta")).not.toHaveAttribute(
+    "aria-invalid",
+  );
+});
+
+it("Usar tarjeta: SnailPay no disponible then submit shows the outage", async () => {
+  setup(reply(503, envelope("error", "service_unavailable")));
+  useCard("SnailPay no disponible");
+  submit();
+  await screen.findByRole("heading", { name: "SnailPay no está disponible" });
+});

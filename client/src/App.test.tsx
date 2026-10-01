@@ -233,3 +233,28 @@ it("masks the register name and email but never the password", () => {
     screen.getByLabelText("Contraseña", { selector: "input" }),
   ).toHaveValue("Abc$%123");
 });
+
+it("top-up: a test card fill plus submit credits the balance", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (_url: string, init: RequestInit) => {
+      const { payer_id } = JSON.parse(init.body as string);
+      return new Response(
+        JSON.stringify({
+          ...chargeResponse("approved", "accredited"),
+          transaction_amount: 100,
+          payer_id,
+        }),
+        { status: 201 },
+      );
+    }),
+  );
+  render(<App />);
+  await registerAda();
+  fireEvent.click(screen.getByRole("button", { name: /Cargar saldo/ }));
+  click("Usar tarjeta: Aprobada");
+  click("Pagar con SnailPay");
+  await screen.findByRole("heading", { name: "Pago aprobado" });
+  click("Listo");
+  expect(screen.getByText("$100.00")).toBeVisible();
+});
