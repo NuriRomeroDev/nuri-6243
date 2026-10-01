@@ -4,10 +4,12 @@ import {
   verifyPassword,
   type PasswordHash,
 } from "./password";
+import { isChargeResponse, type ChargeResponse } from "../topup/snailpay";
 import { normalizeEmail } from "./validation";
 
 export const USERS_KEY = "snail-racing:v1:users";
 export const SESSION_KEY = "snail-racing:v1:session";
+export const TRANSACTIONS_KEY = "snail-racing:v1:transactions";
 
 export type UserRecord = {
   id: string;
@@ -150,4 +152,45 @@ export function currentUser(): User | null {
     return null;
   }
   return toUser(record);
+}
+
+// Invalid entries are dropped individually; a corrupted store reads as empty.
+const readTransactions = (): Record<string, ChargeResponse[]> =>
+  Object.fromEntries(
+    Object.entries(readJson(TRANSACTIONS_KEY, isObject) ?? {}).map(
+      ([userId, list]) => [
+        userId,
+        Array.isArray(list) ? list.filter(isChargeResponse) : [],
+      ],
+    ),
+  );
+
+// Stores every attempt; credits the balance only for a new approved transaction.
+// Write order: transactions first, then the user. If the second write fails the
+// attempt is on record but not credited (a replay of that id will not credit
+// either), so a failure can under-credit but never double-credit.
+export function recordCharge(userId: string, response: ChargeResponse): User {
+  const users = readUsers();
+  const entry = Object.entries(users).find(([, u]) => u.id === userId);
+  if (!entry) throw new Error("Unknown user");
+  const [email, record] = entry;
+
+  const all = readTransactions();
+  const previous = all[userId] ?? [];
+  const isNew = !previous.some((t) => t.id === response.id);
+  // ponytail: card number and CVV are stored because the spec requires it; fictitious data only, never do this with real cards
+  writeJson(TRANSACTIONS_KEY, {
+    ...all,
+    [userId]: [...previous, ...(isNew ? [response] : [])],
+  });
+
+  if (!isNew || response.status !== "approved") return toUser(record);
+  const updated: UserRecord = {
+    ...record,
+    balanceCents:
+      record.balanceCents +
+      Math.round((response.transaction_amount ?? 0) * 100),
+  };
+  writeJson(USERS_KEY, { ...users, [email]: updated });
+  return toUser(updated);
 }

@@ -1,12 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  TRANSACTIONS_KEY,
   USERS_KEY,
   SESSION_KEY,
   currentUser,
   login,
   logout,
+  recordCharge,
   register,
 } from "./auth";
+import type { ChargeResponse } from "../topup/snailpay";
 import { PBKDF2_ITERATIONS, verifyPassword } from "./password";
 
 vi.mock("./password", async (importOriginal) => {
