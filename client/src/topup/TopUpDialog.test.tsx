@@ -276,7 +276,9 @@ it("submits 16 digits when the card is typed without spaces", async () => {
 });
 
 const useCard = (outcome: string) =>
-  fireEvent.click(screen.getByRole("button", { name: `Usar tarjeta: ${outcome}` }));
+  fireEvent.click(
+    screen.getByRole("button", { name: `Usar tarjeta: ${outcome}` }),
+  );
 
 it("Usar tarjeta fills the card, name and amount and focuses submit", () => {
   setup(reply(201, {}));
@@ -300,7 +302,11 @@ it("Usar tarjeta fills the card, name and amount and focuses submit", () => {
 
 it("Usar tarjeta keeps a typed name and amount and clears errors", () => {
   setup(reply(201, {}));
-  fill({ "Número de tarjeta": "1", "Nombre del titular": "Grace Hopper", "Monto a cargar": "20" });
+  fill({
+    "Número de tarjeta": "1",
+    "Nombre del titular": "Grace Hopper",
+    "Monto a cargar": "20",
+  });
   submit();
   expect(screen.getByLabelText("Número de tarjeta")).toHaveAttribute(
     "aria-invalid",
