@@ -1,10 +1,16 @@
-# Snail Racing
+# Snail Club
 
-A snail racing betting dashboard with a mock payment gateway.
+A snail racing betting dashboard with simulated stats and a mock payment gateway (SnailPay). The UI is in Spanish.
+
+- Register, log in and log out; the session and balance survive a page reload.
+- Dashboard with balance, a donut chart of won and lost bets, and a bar chart of daily wins for 6 snails.
+- Top-up flow against SnailPay with approval, declines, a system error and a timeout.
+
+Stack: React 19 + Vite + TypeScript (client), Express 5 + TypeScript (API), Vitest, npm workspaces. No UI kit, chart library or state library.
 
 ## Prerequisites
 
-- Node 22 (see `.nvmrc`)
+- Node 22.22+ or 24.15+ (see `.nvmrc`)
 - npm 10+
 
 ## Quick start
@@ -14,24 +20,62 @@ npm install
 npm run dev
 ```
 
-- Client: http://localhost:5173
+- Client: http://localhost:5173 (Vite proxies `/api` to the API)
 - API: http://localhost:3001
+
+Register any account, then use **Cargar saldo** with the test cards listed below. The same list is available inside the top-up dialog under **Tarjetas de prueba**.
+
+## Production build
+
+```sh
+npm run build
+npm start
+```
+
+The API serves the built client, so the whole app runs on one port: http://localhost:3001 (or `PORT`). `render.yaml` deploys it to Render as a single web service.
 
 ## Scripts
 
-| Script              | Description                          |
-| ------------------- | ------------------------------------ |
-| `npm run dev`       | Run client and server in watch mode  |
-| `npm run build`     | Build both workspaces                |
-| `npm test`          | Run all tests                        |
-| `npm run lint`      | Run ESLint and check Prettier format |
-| `npm run typecheck` | Type-check both workspaces           |
-| `npm run format`    | Format the repo with Prettier        |
+| Script              | Description                               |
+| ------------------- | ----------------------------------------- |
+| `npm run dev`       | Run client and server in watch mode       |
+| `npm run build`     | Build both workspaces                     |
+| `npm start`         | Serve the built app and API from one port |
+| `npm test`          | Run all tests (client and server)         |
+| `npm run lint`      | Run ESLint and check Prettier format      |
+| `npm run typecheck` | Type-check both workspaces                |
+| `npm run format`    | Format the repo with Prettier             |
 
 ## Project layout
 
-- `client/` - React + Vite frontend
-- `server/` - Express API
+```
+client/src/
+  auth/        validation, PBKDF2 hashing, localStorage auth service, useAuth hook
+  dashboard/   seeded daily stats, dashboard and hand-made charts
+  topup/       SnailPay client (timeout, response guard) and top-up dialog
+  ui/          auth screens, text field, inline SVG icons
+server/src/
+  snailpay/    pure charge service and thin Express router
+  static.ts    serves the built client in production
+```
+
+## Testing
+
+`npm test` runs Vitest in both workspaces; CI runs lint, typecheck, test and build on every pull request. Tests focus on the logic that can lose money or data:
+
+- **SnailPay API**: every validation rule and scenario, the response envelope on every path, body errors, and the timeout delay (injected so tests stay fast).
+- **SnailPay client**: HTTP-to-result mapping, the 8 s abort, malformed responses, and that only HTTP 201 with `approved` counts as approved.
+- **Balance**: credit happens once per approved transaction and never on declines, errors or mismatched responses.
+- **Auth**: hashing, duplicate emails, generic login errors, corrupted `localStorage`.
+- **UI flows** (Testing Library): register, log out, log in, reload, and every top-up state.
+
+## Data in localStorage
+
+| Key                            | Content                                                                                                |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| `snail-racing:v1:users`        | accounts by email, with password hash and balance in cents                                             |
+| `snail-racing:v1:session`      | current `userId`                                                                                       |
+| `snail-racing:v1:transactions` | every SnailPay response per user, including card number and CVV (required by the spec; test data only) |
 
 ## SnailPay (mock payment API)
 
@@ -88,7 +132,27 @@ A malformed JSON body, a body that is not a JSON object, or a missing JSON conte
 | `5000000000000017` | any              | 504  | `error`    | `processing_timeout` (simulated timeout, answers after 10 s) |
 | any other card     | any              | 402  | `rejected` | `cc_rejected_card_not_recognized`                            |
 
-Expiry is not checked against the clock. Unexpected server failures return 500 `error` / `internal_error`.
+Expiry is not checked against the clock. Unexpected server failures return 500 `error` / `internal_error`. The client gives up after 8 s, so in the app the timeout card shows the timeout state before the server's 504 arrives.
+
+### Reproduce each response
+
+With the API running (`npm run dev` or `npm start`), change only `card_number` (and `cvv` for the wrong-CVV case):
+
+```sh
+curl -i -X POST http://localhost:3001/api/snailpay/charge \
+  -H 'Content-Type: application/json' \
+  -d '{"payer_id":"user-1","payer_email":"ada@example.com","card_number":"1234123412341234","expiration_date":"12/26","cvv":"543","full_name":"Ada Lovelace","amount":10.5}'
+```
+
+| Try                                | Expected                |
+| ---------------------------------- | ----------------------- |
+| body above                         | 201 `approved`          |
+| `"cvv":"999"`                      | 402 wrong security code |
+| `"card_number":"4000000000000002"` | 402 card declined       |
+| `"card_number":"4000000000009995"` | 402 insufficient amount |
+| `"card_number":"5000000000000009"` | 503 system error        |
+| `"card_number":"5000000000000017"` | 504 after 10 s          |
+| `"amount":0`                       | 422 `invalid_amount`    |
 
 ### Response
 
