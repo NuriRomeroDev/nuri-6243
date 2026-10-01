@@ -201,3 +201,90 @@ describe("session", () => {
     },
   );
 });
+
+describe("recordCharge", () => {
+  const response = (over: Partial<ChargeResponse> = {}): ChargeResponse => ({
+    id: "t1",
+    status: "approved",
+    status_detail: "accredited",
+    transaction_amount: 19.99,
+    date_created: "2026-01-01T00:00:00.000Z",
+    authorization_code: "123456",
+    reference: "SNP-20260101-000001",
+    payer_id: "u",
+    payer_email: "ada@example.com",
+    card_number: "1234123412341234",
+    cvv: "543",
+    ...over,
+  });
+  const stored = () =>
+    JSON.parse(localStorage.getItem(TRANSACTIONS_KEY) ?? "{}");
+  const setup = async () => {
+    const result = await register(ada);
+    if (!result.ok) throw new Error("register failed");
+    return result.user;
+  };
+
+  it("credits an approved charge in cents and persists the user", async () => {
+    const user = await setup();
+    const updated = recordCharge(user.id, response());
+    expect(updated.balanceCents).toBe(1999);
+    expect(currentUser()?.balanceCents).toBe(1999);
+  });
+
+  it("credits the same transaction id only once", async () => {
+    const user = await setup();
+    recordCharge(user.id, response());
+    const again = recordCharge(user.id, response());
+    expect(again.balanceCents).toBe(1999);
+    expect(stored()[user.id]).toHaveLength(1);
+  });
+
+  it("stores rejected and error attempts without crediting", async () => {
+    const user = await setup();
+    recordCharge(
+      user.id,
+      response({ id: "r", status: "rejected", authorization_code: null }),
+    );
+    const updated = recordCharge(
+      user.id,
+      response({ id: "e", status: "error", authorization_code: null }),
+    );
+    expect(updated.balanceCents).toBe(0);
+    expect(stored()[user.id]).toHaveLength(2);
+  });
+
+  it("keeps the full response, including card number and CVV", async () => {
+    const user = await setup();
+    recordCharge(user.id, response());
+    expect(stored()[user.id][0]).toMatchObject({
+      card_number: "1234123412341234",
+      cvv: "543",
+    });
+  });
+
+  it("rounds floating-point amounts to whole cents", async () => {
+    const user = await setup();
+    const updated = recordCharge(
+      user.id,
+      response({ transaction_amount: 0.1 + 0.2 }),
+    );
+    expect(updated.balanceCents).toBe(30);
+  });
+
+  it("survives corrupted transactions data", async () => {
+    const user = await setup();
+    localStorage.setItem(TRANSACTIONS_KEY, "{not json");
+    expect(recordCharge(user.id, response()).balanceCents).toBe(1999);
+    localStorage.setItem(
+      TRANSACTIONS_KEY,
+      JSON.stringify({ [user.id]: [{ junk: true }, response({ id: "ok" })] }),
+    );
+    // The valid "ok" entry is kept; the junk one is dropped.
+    recordCharge(user.id, response({ id: "t2", transaction_amount: 1 }));
+    expect(stored()[user.id].map((t: { id: string }) => t.id)).toEqual([
+      "ok",
+      "t2",
+    ]);
+  });
+});
