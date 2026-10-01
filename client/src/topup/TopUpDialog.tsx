@@ -9,7 +9,7 @@ import {
   WarningIcon,
   XIcon,
 } from "../ui/icons";
-import { charge, type ChargeResponse, type ChargeResult } from "./snailpay";
+import { charge, type ChargeResult } from "./snailpay";
 
 type Fields = {
   card: string;
@@ -28,7 +28,7 @@ type View =
 type Props = {
   user: User;
   onClose: () => void;
-  onCharge: (response: ChargeResponse) => void;
+  onCharge: (result: ChargeResult) => void;
   timeoutMs?: number;
   fetchImpl?: typeof fetch;
 };
@@ -128,7 +128,7 @@ export function TopUpDialog({
     );
     if ("response" in result && result.response) {
       try {
-        onCharge(result.response);
+        onCharge(result);
       } catch {
         setFormError(
           `No pudimos guardar tu saldo. Guarda esta referencia: ${result.response.reference}`,

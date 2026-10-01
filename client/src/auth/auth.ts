@@ -165,11 +165,16 @@ const readTransactions = (): Record<string, ChargeResponse[]> =>
     ),
   );
 
-// Stores every attempt; credits the balance only for a new approved transaction.
+// Stores every attempt; credits only when the caller says so (the HTTP-aware
+// ChargeResult.kind === "approved", never the body alone) and the id is new.
 // Write order: transactions first, then the user. If the second write fails the
 // attempt is on record but not credited (a replay of that id will not credit
 // either), so a failure can under-credit but never double-credit.
-export function recordCharge(userId: string, response: ChargeResponse): User {
+export function recordCharge(
+  userId: string,
+  response: ChargeResponse,
+  { credit }: { credit: boolean },
+): User {
   const users = readUsers();
   const entry = Object.entries(users).find(([, u]) => u.id === userId);
   if (!entry) throw new Error("Unknown user");
@@ -184,7 +189,7 @@ export function recordCharge(userId: string, response: ChargeResponse): User {
     [userId]: [...previous, ...(isNew ? [response] : [])],
   });
 
-  if (!isNew || response.status !== "approved") return toUser(record);
+  if (!isNew || !credit) return toUser(record);
   const updated: UserRecord = {
     ...record,
     balanceCents:
