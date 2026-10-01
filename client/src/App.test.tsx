@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { expect, it, vi } from "vitest";
 import { App } from "./App";
+import { TRANSACTIONS_KEY } from "./auth/auth";
 
 vi.mock("./auth/password", async (importOriginal) => {
   const real = await importOriginal<typeof import("./auth/password")>();
@@ -125,4 +126,60 @@ it("toggles password visibility with an accessible button", () => {
   const hide = screen.getByRole("button", { name: "Ocultar contraseña" });
   expect(hide).toHaveAttribute("aria-pressed", "true");
   expect(hide).toHaveAttribute("aria-controls", input.id);
+});
+
+const chargeResponse = (status: string, detail: string) => ({
+  id: "t1",
+  status,
+  status_detail: detail,
+  transaction_amount: 25.5,
+  date_created: "2026-01-01T00:00:00.000Z",
+  authorization_code: status === "approved" ? "111222" : null,
+  reference: "SNP-20260101-000001",
+  payer_id: "x",
+  payer_email: "ada@example.com",
+  card_number: "1234123412341234",
+  cvv: "543",
+});
+const topUp = (httpStatus: number, body: unknown) => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(
+      async () => new Response(JSON.stringify(body), { status: httpStatus }),
+    ),
+  );
+  fireEvent.click(screen.getByRole("button", { name: /Cargar saldo/ }));
+  fill({
+    "Número de tarjeta": "1234123412341234",
+    Vencimiento: "12/26",
+    CVV: "543",
+    "Nombre del titular": "Ada Lovelace",
+    "Monto a cargar": "25.50",
+  });
+  click("Pagar con SnailPay →");
+};
+
+it("top-up: an approved charge updates the balance and stores the transaction", async () => {
+  render(<App />);
+  await registerAda();
+  topUp(201, chargeResponse("approved", "accredited"));
+  await screen.findByRole("heading", { name: "Pago aprobado" });
+  click("Listo");
+  expect(screen.getByText("$25.50")).toBeVisible();
+  const stored = Object.values(
+    JSON.parse(localStorage.getItem(TRANSACTIONS_KEY) ?? "{}"),
+  )[0] as { card_number: string; cvv: string }[];
+  expect(stored[0]).toMatchObject({
+    card_number: "1234123412341234",
+    cvv: "543",
+  });
+});
+
+it("top-up: a rejected charge leaves the balance unchanged", async () => {
+  render(<App />);
+  await registerAda();
+  topUp(402, chargeResponse("rejected", "cc_rejected_card_declined"));
+  await screen.findByRole("heading", { name: "Tarjeta rechazada" });
+  click("Cerrar");
+  expect(screen.getByText("$0.00")).toBeVisible();
 });
