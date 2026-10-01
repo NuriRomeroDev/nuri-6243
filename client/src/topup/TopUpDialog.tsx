@@ -96,7 +96,12 @@ export function TopUpDialog({
   const [formError, setFormError] = useState("");
 
   useEffect(() => {
+    // Conditional mounting means the browser won't restore focus; do it here.
+    const trigger = document.activeElement;
     dialogRef.current?.showModal();
+    return () => {
+      if (trigger instanceof HTMLElement) trigger.focus();
+    };
   }, []);
 
   // Form: focus the first invalid field (or the first field); result: the heading.
@@ -107,7 +112,7 @@ export function TopUpDialog({
           '[aria-invalid="true"]',
         ) ?? dialogRef.current?.querySelector<HTMLElement>("input")
       )?.focus();
-    else if (view.name === "result") headingRef.current?.focus();
+    else headingRef.current?.focus();
   }, [view, errors]);
 
   const processing = view.name === "processing";
@@ -126,6 +131,9 @@ export function TopUpDialog({
       },
       { timeoutMs, fetchImpl },
     );
+    // A late response after unmount (logout/HMR) is still recorded: if the
+    // server approved it, the transaction must not be lost. setState on an
+    // unmounted component is a no-op in React 18+, so no guard is needed.
     if ("response" in result && result.response) {
       try {
         onCharge(result);
@@ -275,7 +283,9 @@ export function TopUpDialog({
       {processing && (
         <div className="topup-state" role="status" aria-live="polite">
           <span className="spinner" aria-hidden="true" />
-          <h2 id="topup-title">Procesando…</h2>
+          <h2 id="topup-title" ref={headingRef} tabIndex={-1}>
+            Procesando…
+          </h2>
           <p>
             Estamos validando tu pago con SnailPay. Por favor, no cierres esta
             ventana.
@@ -371,10 +381,11 @@ function Result({
         <ClockIcon />,
         "La operación tardó demasiado",
         <p>
-          La solicitud de pago tomó más tiempo del esperado. No se aplicó ningún
-          cargo. Puedes intentar nuevamente.
+          No pudimos confirmar el pago. No se aplicó ningún cargo a tu saldo.
+          Puedes intentar nuevamente.
         </p>,
         <>
+          {/* ponytail: a real gateway needs an idempotency key so a retry after a client timeout can't charge twice */}
           <button type="button" className="primary" onClick={onRetry}>
             Reintentar
           </button>
