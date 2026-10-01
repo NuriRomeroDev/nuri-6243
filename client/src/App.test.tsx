@@ -200,3 +200,13 @@ it("top-up: a 200 approved-shaped body does not credit but is stored", async () 
   )[0] as unknown[];
   expect(stored).toHaveLength(1);
 });
+
+it("top-up: closing the dialog returns focus to the Cargar saldo button", async () => {
+  render(<App />);
+  await registerAda();
+  const trigger = screen.getByRole("button", { name: /Cargar saldo/ });
+  trigger.focus();
+  fireEvent.click(trigger);
+  click("Cerrar ventana");
+  expect(trigger).toHaveFocus();
+});

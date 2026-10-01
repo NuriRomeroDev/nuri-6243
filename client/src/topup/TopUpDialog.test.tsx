@@ -59,6 +59,13 @@ function setup(fetchImpl: typeof fetch, extra = {}) {
 
 afterEach(() => vi.useRealTimers());
 
+it("moves focus into the dialog while processing", () => {
+  setup(vi.fn(() => new Promise<Response>(() => {})));
+  fill();
+  submit();
+  expect(screen.getByRole("heading", { name: "Procesando…" })).toHaveFocus();
+});
+
 it("opens as an accessible modal with the first field focused", () => {
   setup(reply(201, {}));
   expect(
@@ -185,6 +192,11 @@ it("timeout: shows the copy and Reintentar resubmits the same data", async () =>
   fill();
   submit();
   await screen.findByRole("heading", { name: "La operación tardó demasiado" });
+  expect(
+    screen.getByText(
+      "No pudimos confirmar el pago. No se aplicó ningún cargo a tu saldo. Puedes intentar nuevamente.",
+    ),
+  ).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: "Reintentar" }));
   await screen.findByRole("heading", { name: "Pago aprobado" });
   expect(fetchImpl).toHaveBeenCalledTimes(2);
