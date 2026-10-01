@@ -94,7 +94,7 @@ it("approves: sends a clean payload, records the charge and shows the code", asy
     screen.getByText(/Estamos validando tu pago con SnailPay/),
   ).toBeVisible();
   const heading = await screen.findByRole("heading", { name: "Pago aprobado" });
-  expect(heading).toHaveFocus();
+  await waitFor(() => expect(heading).toHaveFocus());
   expect(screen.getByText("654321")).toBeVisible();
   expect(screen.getByText("$500.00")).toBeVisible();
   const body = JSON.parse(
@@ -201,6 +201,7 @@ it("422 returns to the form with the matching field error", async () => {
       "true",
     ),
   );
-  expect(screen.getByLabelText("CVV")).toHaveFocus();
+  // Focus moves in a passive effect, so it may land just after the DOM update.
+  await waitFor(() => expect(screen.getByLabelText("CVV")).toHaveFocus());
   expect(onCharge).toHaveBeenCalledOnce();
 });
