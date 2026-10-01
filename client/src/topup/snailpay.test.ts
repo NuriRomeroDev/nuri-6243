@@ -31,7 +31,7 @@ afterEach(() => vi.useRealTimers());
 describe("isChargeResponse", () => {
   it("accepts a full envelope and rejects missing keys or bad status", () => {
     expect(isChargeResponse(envelope("approved", "accredited"))).toBe(true);
-    const { id: _id, ...noId } = envelope("approved", "accredited");
+    const noId = { ...envelope("approved", "accredited"), id: undefined };
     expect(isChargeResponse(noId)).toBe(false);
     expect(isChargeResponse({ ...envelope("x", "y") })).toBe(false);
     expect(isChargeResponse(null)).toBe(false);
@@ -124,7 +124,7 @@ describe("charge", () => {
   it("times out when the request outlives timeoutMs", async () => {
     vi.useFakeTimers();
     const fetchImpl = vi.fn(
-      (_url: string, init?: RequestInit) =>
+      (_url: RequestInfo | URL, init?: RequestInit) =>
         new Promise<Response>((_res, rej) =>
           init?.signal?.addEventListener("abort", () =>
             rej(new DOMException("aborted", "AbortError")),
