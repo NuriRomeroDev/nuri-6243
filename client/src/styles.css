@@ -583,9 +583,18 @@ button.logout:hover {
     height: 56px;
   }
 
+  /* Fade only behind the text so the illustration stays vivid on the right. */
   .banner {
     height: 220px;
     padding: 0 48px;
+    background:
+      linear-gradient(
+        90deg,
+        rgb(251 248 241 / 0.95) 0%,
+        rgb(251 248 241 / 0.85) 30%,
+        rgb(251 248 241 / 0) 52%
+      ),
+      url("./assets/dashboard-banner.webp") right center / cover no-repeat;
   }
 
   .banner h2 {
