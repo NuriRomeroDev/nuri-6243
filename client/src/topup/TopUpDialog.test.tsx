@@ -230,3 +230,39 @@ it("a 200 approved-shaped body is unavailable and never flagged as approved", as
     expect.objectContaining({ kind: "unavailable" }),
   );
 });
+
+it.each([
+  ["Vencimiento", "12ab26", "12/26"],
+  ["Monto a cargar", "ab1c2", "12"],
+  ["Número de tarjeta", "4000000000000002", "4000 0000 0000 0002"],
+  ["CVV", "12a3", "123"],
+  ["Nombre del titular", "Ada2 Lovelace!", "Ada Lovelace"],
+])("masks %s as the user types", (label, typed, shown) => {
+  setup(reply(201, {}));
+  fireEvent.change(screen.getByLabelText(label), { target: { value: typed } });
+  expect(screen.getByLabelText(label)).toHaveValue(shown);
+});
+
+it("limits input length with maxLength attributes", () => {
+  setup(reply(201, {}));
+  for (const [label, max] of [
+    ["Número de tarjeta", "19"],
+    ["Vencimiento", "5"],
+    ["CVV", "3"],
+    ["Monto a cargar", "9"],
+  ])
+    expect(screen.getByLabelText(label)).toHaveAttribute("maxlength", max);
+});
+
+it("submits 16 digits when the card is typed without spaces", async () => {
+  const fetchImpl = reply(201, envelope("approved", "accredited"));
+  setup(fetchImpl);
+  fill({ "Número de tarjeta": "1234123412341234" });
+  submit();
+  await screen.findByRole("heading", { name: "Pago aprobado" });
+  const body = JSON.parse(
+    (fetchImpl.mock.calls[0] as unknown as [string, RequestInit])[1]
+      .body as string,
+  );
+  expect(body.card_number).toBe("1234123412341234");
+});

@@ -216,3 +216,20 @@ it("top-up: closing the dialog returns focus to the Cargar saldo button", async 
   click("Cerrar ventana");
   expect(trigger).toHaveFocus();
 });
+
+it("masks the register name and email but never the password", () => {
+  render(<App />);
+  click("Crear cuenta");
+  fill({
+    "Nombre completo": "Ana2 Torres!",
+    "Correo electrónico": "ana @example.com",
+    Contraseña: "Abc$%123",
+  });
+  expect(screen.getByLabelText("Nombre completo")).toHaveValue("Ana Torres");
+  expect(screen.getByLabelText("Correo electrónico")).toHaveValue(
+    "ana@example.com",
+  );
+  expect(screen.getByLabelText("Contraseña", { selector: "input" })).toHaveValue(
+    "Abc$%123",
+  );
+});
