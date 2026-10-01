@@ -86,6 +86,22 @@ describe("charge", () => {
     expect(r.kind).toBe(kind);
   });
 
+  it.each([
+    ["amount", { transaction_amount: 11 }],
+    ["payer", { payer_id: "someone-else" }],
+  ])(
+    "downgrades an approved response whose %s differs from the request",
+    async (_n, over) => {
+      const r = await charge(req, {
+        fetchImpl: reply(201, {
+          ...envelope("approved", "accredited"),
+          ...over,
+        }),
+      });
+      expect(r.kind).toBe("unavailable");
+    },
+  );
+
   it("keeps the response for unavailable and rejected results", async () => {
     const r = await charge(req, {
       fetchImpl: reply(503, envelope("error", "service_unavailable")),
