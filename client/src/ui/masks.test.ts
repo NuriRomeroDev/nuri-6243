@@ -32,6 +32,13 @@ describe("expiry", () => {
     ["ab12cd26", "12/26"],
     ["526", "05/26"],
     ["//", ""],
+    // Months only go up to 12: "13" can't be a month, so the 1 is the month 01.
+    ["13", "01/3"],
+    ["1926", "01/92"],
+    ["01/3", "01/3"],
+    // "00" is not a month either; the second zero is dropped.
+    ["00", "0"],
+    ["0012", "01/2"],
   ])("expiry(%j) = %j", (input, expected) => {
     expect(expiry(input)).toBe(expected);
   });
@@ -81,6 +88,10 @@ describe("personName", () => {
     ["José Núñez", "José Núñez"],
     ["O'Brien-Smith", "O'Brien-Smith"],
     ["Ana\tTorres", "Ana Torres"],
+    // macOS can paste decomposed accents (e + combining acute); they must survive.
+    ["José Núñez", "José Núñez"],
+    ["Juan Jr.", "Juan Jr."],
+    ["Mª. José", "Mª. José"],
     ["1234", ""],
     ["a".repeat(150), "a".repeat(100)],
   ])("personName(%j) = %j", (input, expected) => {
