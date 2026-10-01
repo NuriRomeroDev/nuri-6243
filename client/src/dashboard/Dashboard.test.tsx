@@ -66,7 +66,8 @@ it("lists the six snails and six simulated wins in an accessible table", () => {
   const body = rows.slice(1);
   expect(body).toHaveLength(6);
   const sum = body.reduce(
-    (acc, row) => acc + Number(within(row).getAllByRole("cell")[1].textContent),
+    (acc, row) =>
+      acc + Number(within(row).getAllByRole("cell")[1]?.textContent),
     0,
   );
   expect(sum).toBe(6);
