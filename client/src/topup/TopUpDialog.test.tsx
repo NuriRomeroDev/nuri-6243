@@ -243,16 +243,18 @@ it.each([
   expect(screen.getByLabelText(label)).toHaveValue(shown);
 });
 
-it("limits input length with maxLength attributes", () => {
+// The masks cap length on the cleaned value. A native maxLength would count the raw text instead,
+// truncating pasted input like "4000 - 0000 - 0000 - 0002" and dropping digits after a rejected key.
+it("leaves length limits to the masks, not maxLength", () => {
   setup(reply(201, {}));
-  const limits: Record<string, string> = {
-    "Número de tarjeta": "19",
-    Vencimiento: "5",
-    CVV: "3",
-    "Monto a cargar": "9",
-  };
-  for (const [label, max] of Object.entries(limits))
-    expect(screen.getByLabelText(label)).toHaveAttribute("maxlength", max);
+  for (const label of ["Número de tarjeta", "Vencimiento", "CVV", "Monto a cargar"])
+    expect(screen.getByLabelText(label)).not.toHaveAttribute("maxlength");
+  fireEvent.change(screen.getByLabelText("Número de tarjeta"), {
+    target: { value: "4000 - 0000 - 0000 - 0002" },
+  });
+  expect(screen.getByLabelText("Número de tarjeta")).toHaveValue(
+    "4000 0000 0000 0002",
+  );
 });
 
 it("submits 16 digits when the card is typed without spaces", async () => {
