@@ -20,14 +20,13 @@ type Props = { user: User; onLogout: () => void; onTopUp?: () => void };
 
 export function Dashboard({ user, onLogout, onTopUp }: Props) {
   const stats = useMemo(() => simulateDay(user.id, new Date()), [user.id]);
-  const firstName = user.fullName.trim().split(/\s+/)[0];
   return (
     <div className="dashboard">
       <header className="dash-header">
         <Brand />
         <div className="dash-user">
           <span className="greeting">
-            Hola, {firstName} <span aria-hidden="true">👋</span>
+            Hola, {user.fullName} <span aria-hidden="true">👋</span>
           </span>
           <button type="button" className="logout" onClick={onLogout}>
             Cerrar sesión <LogoutIcon />
