@@ -95,14 +95,17 @@ export function TopUpDialog({
   const [errors, setErrors] = useState<Errors>({});
   const [formError, setFormError] = useState("");
 
+  // Capture the opener during render, before showModal() moves focus. Reading it inside the
+  // effect breaks under StrictMode: the re-run sees the dialog's own input as the active element.
+  const [trigger] = useState(() => document.activeElement);
+
   useEffect(() => {
     // Conditional mounting means the browser won't restore focus; do it here.
-    const trigger = document.activeElement;
     dialogRef.current?.showModal();
     return () => {
       if (trigger instanceof HTMLElement) trigger.focus();
     };
-  }, []);
+  }, [trigger]);
 
   // Form: focus the first invalid field (or the first field); result: the heading.
   useEffect(() => {

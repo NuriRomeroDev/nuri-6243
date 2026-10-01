@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { StrictMode } from "react";
 import { expect, it, vi } from "vitest";
 import { App } from "./App";
 import { TRANSACTIONS_KEY } from "./auth/auth";
@@ -202,7 +203,12 @@ it("top-up: a 200 approved-shaped body does not credit but is stored", async () 
 });
 
 it("top-up: closing the dialog returns focus to the Cargar saldo button", async () => {
-  render(<App />);
+  // StrictMode re-runs effects, which is how the real app runs in development.
+  render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
   await registerAda();
   const trigger = screen.getByRole("button", { name: /Cargar saldo/ });
   trigger.focus();
