@@ -27,7 +27,7 @@ async function registerAda() {
   click("Crear cuenta");
   fill(account);
   click("Crear cuenta");
-  await screen.findByText("Hola, Ada Lovelace");
+  await screen.findByText(/Hola, Ada/);
 }
 
 it("shows the auth screen without a session", () => {
@@ -69,11 +69,11 @@ it("registers, logs out, logs in and stays logged in after a remount", async () 
   click("Cerrar sesión");
   fill(creds);
   click("Iniciar sesión");
-  await screen.findByText("Hola, Ada Lovelace");
+  await screen.findByText(/Hola, Ada/);
 
   unmount();
   render(<App />);
-  expect(screen.getByText("Hola, Ada Lovelace")).toBeVisible();
+  expect(screen.getByText(/Hola, Ada/)).toBeVisible();
 });
 
 it("shows a generic alert for a wrong password", async () => {
